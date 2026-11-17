@@ -1,0 +1,2935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SKA Schedule Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #6B1A2A;
+      --gold: #E8457A;
+      --gold-light: #F9B8CF;
+      --cream: #FFF5F8;
+      --white: #ffffff;
+      --slate: #7A4050;
+      --light-gray: #EDD4DB;
+      --green: #2d6a4f;
+      --green-light: #d8f3dc;
+      --red: #c0392b;
+      --red-light: #fde8e6;
+      --blue-light: #e8f0fe;
+      --blue: #1a56db;
+      --purple-light: #f3e8ff;
+      --purple: #6b21a8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--navy); min-height: 100vh; }
+
+    /* HEADER */
+    header {
+      background: var(--navy);
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid var(--gold);
+    }
+    header .header-left h1 { font-family: 'DM Serif Display', serif; color: var(--white); font-size: 1.5rem; }
+    header .header-left h1 span { color: var(--gold); }
+    header .header-left p { color: var(--gold-light); font-size: 0.78rem; font-weight: 300; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px; }
+    .header-badge { background: var(--gold); color: var(--navy); font-weight: 600; font-size: 0.72rem; padding: 5px 12px; border-radius: 20px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+    /* LAYOUT */
+    .app-layout { display: grid; grid-template-columns: 260px 1fr; min-height: calc(100vh - 77px); }
+
+    /* SIDEBAR */
+    .sidebar { background: var(--white); border-right: 1px solid var(--light-gray); padding: 28px 0; position: sticky; top: 0; height: calc(100vh - 77px); overflow-y: auto; }
+    .sidebar-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate); padding: 0 20px 8px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 11px 20px; cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; font-size: 0.88rem; color: var(--slate); }
+    .nav-item:hover { background: var(--cream); color: var(--navy); }
+    .nav-item.active { border-left-color: var(--gold); background: #FDEDF3; color: var(--navy); font-weight: 600; }
+    .nav-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
+    .nav-divider { height: 1px; background: var(--light-gray); margin: 14px 20px; }
+
+    /* MAIN */
+    .main-content { padding: 36px 40px; max-width: 960px; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .section-header { margin-bottom: 28px; padding-bottom: 18px; border-bottom: 1px solid var(--light-gray); }
+    .section-eyebrow { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); margin-bottom: 5px; }
+    .section-header h2 { font-family: 'DM Serif Display', serif; font-size: 1.9rem; color: var(--navy); }
+    .section-header p { color: var(--slate); font-size: 0.875rem; margin-top: 6px; font-weight: 300; }
+
+    /* CARDS */
+    .card { background: var(--white); border: 1px solid var(--light-gray); border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+    .card-title { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--navy); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .card-title .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+
+    /* FORM */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+    .form-row.single { grid-template-columns: 1fr; }
+    .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--slate); }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 9px 12px; border: 1.5px solid var(--light-gray); border-radius: 7px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.875rem; color: var(--navy);
+      background: var(--white); transition: border-color 0.15s; appearance: none;
+    }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--gold); }
+
+    /* PERIOD CHECKBOXES */
+    .period-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+    .period-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border: 1.5px solid var(--light-gray); border-radius: 7px;
+      cursor: pointer; transition: all 0.15s; font-size: 0.82rem; line-height: 1.3;
+    }
+    .period-item:hover { border-color: var(--gold); background: #FDEDF3; }
+    .period-item.checked { border-color: var(--gold); background: #FDEDF3; }
+    .period-item input[type="checkbox"] { accent-color: var(--gold); cursor: pointer; flex-shrink: 0; width: 15px; height: 15px; }
+    .period-name { font-weight: 600; color: var(--navy); }
+    .period-time { font-size: 0.74rem; color: var(--slate); }
+    .period-day-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--slate); margin: 14px 0 8px; }
+
+    /* BUTTONS */
+    .btn { padding: 10px 20px; border-radius: 7px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 600; transition: all 0.15s; display: inline-flex; align-items: center; gap: 7px; }
+    .btn-primary { background: var(--navy); color: var(--white); }
+    .btn-primary:hover { background: #243560; }
+    .btn-gold { background: var(--gold); color: var(--navy); }
+    .btn-gold:hover { background: #b8943e; }
+    .btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--light-gray); }
+    .btn-outline:hover { border-color: var(--navy); }
+    .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+    .btn-danger { background: var(--red); color: white; }
+    .form-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--light-gray); }
+
+    /* FACULTY GRID */
+    .faculty-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .faculty-card {
+      padding: 12px 14px; border: 1.5px solid var(--light-gray); border-radius: 8px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .faculty-card:hover { border-color: var(--gold); background: #FDEDF3; }
+    .faculty-card.has-availability { border-color: var(--green); background: var(--green-light); }
+    .faculty-card.non-teaching { opacity: 0.5; cursor: default; }
+    .faculty-card.non-teaching:hover { border-color: var(--light-gray); background: var(--white); }
+    .faculty-name { font-weight: 600; font-size: 0.83rem; color: var(--navy); }
+    .faculty-role { font-size: 0.74rem; color: var(--slate); margin-top: 2px; line-height: 1.3; }
+    .faculty-status { font-size: 0.7rem; margin-top: 5px; font-weight: 600; }
+    .status-set { color: var(--green); }
+    .status-pending { color: #92620a; }
+    .status-admin { color: var(--slate); }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--white); border-radius: 12px; width: 620px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal-header { padding: 22px 24px 16px; border-bottom: 1px solid var(--light-gray); display: flex; align-items: flex-start; justify-content: space-between; }
+    .modal-header h3 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--navy); }
+    .modal-header p { font-size: 0.8rem; color: var(--slate); margin-top: 3px; }
+    .modal-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--slate); padding: 2px 6px; border-radius: 4px; }
+    .modal-close:hover { background: var(--cream); }
+    .modal-body { padding: 22px 24px; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--light-gray); display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* SUB SECTIONS */
+    .sub-section { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed var(--light-gray); }
+    .sub-section:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+    .sub-title { font-size: 0.76rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--slate); margin-bottom: 10px; }
+
+    /* BADGES */
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.76rem; font-weight: 500; }
+    .badge-required { background: var(--blue-light); color: var(--blue); border: 1px solid #c3d9ff; }
+    .badge-tracked { background: var(--purple-light); color: var(--purple); border: 1px solid #e9d5ff; }
+    .required-classes { display: flex; flex-wrap: wrap; gap: 7px; }
+
+    /* TRACK BUTTONS */
+    .track-grid { display: flex; gap: 7px; flex-wrap: wrap; }
+    .track-btn { padding: 6px 14px; border: 1.5px solid var(--light-gray); border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-weight: 500; background: var(--white); color: var(--slate); transition: all 0.15s; }
+    .track-btn:hover { border-color: var(--purple); color: var(--purple); }
+    .track-btn.selected { border-color: var(--purple); background: var(--purple-light); color: var(--purple); font-weight: 600; }
+    .track-btn.honors.selected { border-color: var(--gold); background: #FDEDF3; color: var(--navy); }
+
+    /* ELECTIVE CARDS */
+    .elective-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .elective-card { padding: 9px 12px; border: 1.5px solid var(--light-gray); border-radius: 7px; cursor: pointer; transition: all 0.15s; font-size: 0.82rem; color: var(--navy); }
+    .elective-card:hover { border-color: var(--gold); background: #FDEDF3; }
+    .elective-card.selected { border-color: var(--gold); background: #FDEDF3; font-weight: 600; }
+    .elective-card input { display: none; }
+
+    /* DATA TABLE */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .data-table th { text-align: left; padding: 9px 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--slate); background: var(--cream); border-bottom: 1px solid var(--light-gray); }
+    .data-table td { padding: 11px 12px; border-bottom: 1px solid var(--light-gray); color: var(--navy); vertical-align: middle; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--cream); }
+
+    /* SCHEDULE TABLE */
+    .schedule-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .schedule-table th { background: var(--navy); color: var(--white); padding: 10px 12px; text-align: center; font-weight: 500; font-size: 0.76rem; letter-spacing: 0.04em; }
+    .schedule-table td { border: 1px solid var(--light-gray); padding: 9px 10px; text-align: center; vertical-align: middle; min-width: 100px; color: var(--slate); }
+    .schedule-table .period-label { background: var(--cream); font-weight: 600; color: var(--navy); font-size: 0.76rem; text-align: left; white-space: nowrap; }
+    .schedule-table .lunch-row td { background: #fff9e6; color: #92620a; font-weight: 500; font-style: italic; }
+
+    /* STATS */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+    .stat-card { background: var(--white); border: 1px solid var(--light-gray); border-radius: 10px; padding: 18px; text-align: center; }
+    .stat-number { font-family: 'DM Serif Display', serif; font-size: 1.9rem; color: var(--navy); }
+    .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--slate); margin-top: 3px; }
+
+    /* ALERT */
+    .alert { padding: 11px 14px; border-radius: 7px; font-size: 0.85rem; margin-bottom: 14px; }
+    .alert-info { background: var(--blue-light); color: var(--blue); border: 1px solid #c3d9ff; }
+    .alert-warning { background: #fff8e1; color: #92620a; border: 1px solid #ffe082; }
+
+    /* SEARCH */
+    .search-bar { position: relative; margin-bottom: 16px; }
+    .search-bar input { width: 100%; padding: 10px 14px 10px 36px; border: 1.5px solid var(--light-gray); border-radius: 7px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; }
+    .search-bar input:focus { outline: none; border-color: var(--gold); }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--slate); font-size: 0.9rem; }
+
+    /* FILTER TABS */
+    .filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .filter-tab { padding: 5px 14px; border-radius: 20px; border: 1.5px solid var(--light-gray); font-size: 0.78rem; font-weight: 500; cursor: pointer; background: var(--white); color: var(--slate); transition: all 0.15s; }
+    .filter-tab:hover { border-color: var(--navy); color: var(--navy); }
+    .filter-tab.active { background: var(--navy); color: var(--white); border-color: var(--navy); }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--slate); }
+    .empty-state .empty-icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .empty-state p { font-size: 0.875rem; font-weight: 300; }
+
+    /* MODAL TABS */
+    .modal-tabs { display: flex; padding: 0 24px; border-bottom: 1px solid var(--light-gray); gap: 0; }
+    .modal-tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 11px 18px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; color: var(--slate); cursor: pointer; transition: all 0.15s; margin-bottom: -1px; }
+    .modal-tab:hover { color: var(--navy); }
+    .modal-tab.active { color: var(--navy); border-bottom-color: var(--gold); font-weight: 600; }
+
+    /* TRACK CHIPS */
+    .track-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 500; background: var(--cream); border: 1px solid var(--light-gray); color: var(--navy); }
+    .track-chip .chip-remove { cursor: pointer; color: var(--slate); font-size: 0.9rem; line-height: 1; }
+    .track-chip .chip-remove:hover { color: var(--red); }
+
+    /* STUDENT PICK LIST */
+    .student-pick-item { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-radius: 6px; font-size: 0.82rem; cursor: pointer; }
+    .student-pick-item:hover { background: var(--cream); }
+    .student-pick-item.selected { background: #FDEDF3; color: var(--navy); font-weight: 500; }
+    .grade-note { font-size: 0.78rem; color: var(--slate); font-style: italic; margin-top: 5px; }
+
+    /* ADD TEACHER FORM */
+    .period-day-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--navy); margin-bottom: 6px; text-align: center; }
+
+    /* COMPACT PERIOD ITEM (per-day columns) */
+    .period-item-compact { display: flex; align-items: flex-start; gap: 7px; padding: 5px 7px; border: 1.5px solid var(--light-gray); border-radius: 6px; cursor: pointer; transition: all 0.15s; margin-bottom: 4px; font-size: 0.75rem; }
+    .period-item-compact:hover { border-color: var(--gold); background: #FDEDF3; }
+    .period-item-compact.checked { border-color: var(--gold); background: #FDEDF3; }
+    .period-item-compact input[type="checkbox"] { accent-color: var(--gold); cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+
+    .add-teacher-toggle { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+
+    /* SCHEDULE BUILDER */
+    .sched-period-block { margin-bottom: 18px; border-radius: 8px; transition: background 0.15s; }
+    .sched-period-block.drag-over { background: color-mix(in srgb, var(--gold) 12%, transparent); outline: 2px dashed var(--gold); }
+    .sched-slot[draggable="true"] { cursor: grab; }
+    .sched-slot[draggable="true"]:active { cursor: grabbing; }
+    .sched-period-label { font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--navy); padding: 8px 14px; background: var(--light-gray); border-radius: 8px 8px 0 0; border-bottom: 2px solid var(--gold); display: flex; align-items: center; gap: 8px; }
+    .sched-period-time { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; color: var(--slate); font-weight: 400; }
+    .sched-slots-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; background: #fff; border: 1px solid var(--light-gray); border-top: none; border-radius: 0 0 8px 8px; }
+    .sched-slot { background: var(--cream); border: 1.5px solid var(--light-gray); border-radius: 8px; padding: 10px 12px; min-width: 160px; max-width: 220px; cursor: pointer; transition: all 0.15s; flex: 1; }
+    .sched-slot:hover { border-color: var(--gold); box-shadow: 0 2px 8px rgba(232,69,122,0.15); }
+    .sched-slot.has-conflict { border-color: var(--red); background: var(--red-light); }
+    .sched-slot-course { font-weight: 600; font-size: 0.85rem; color: var(--navy); }
+    .sched-slot-section { font-size: 0.72rem; color: var(--gold); font-weight: 600; letter-spacing: 0.05em; }
+    .sched-slot-meta { font-size: 0.73rem; color: var(--slate); margin-top: 4px; line-height: 1.5; }
+    .sched-slot-grade-badge { display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 1px 6px; border-radius: 10px; margin-bottom: 3px; }
+    .grade-9  { background: #e8f0fe; color: #1a56db; }
+    .grade-10 { background: #f3e8ff; color: #6b21a8; }
+    .grade-11 { background: #d8f3dc; color: #2d6a4f; }
+    .grade-12 { background: #fff8e1; color: #b45309; }
+    .sched-slot-students { font-size: 0.7rem; color: var(--slate); margin-top: 5px; border-top: 1px solid var(--light-gray); padding-top: 4px; }
+    .student-chip { display: inline-block; background: var(--light-gray); border-radius: 10px; padding: 2px 7px; font-size: 0.68rem; margin: 2px; cursor: pointer; }
+    .student-chip:hover { background: var(--red-light); color: var(--red); }
+
+    /* CHAT BUBBLES */
+    .chat-bubble { padding: 9px 13px; border-radius: 12px; font-size: 0.83rem; line-height: 1.5; max-width: 90%; }
+    .chat-ai { background: var(--cream); color: var(--navy); align-self: flex-start; border-bottom-left-radius: 3px; }
+    .chat-user { background: var(--navy); color: #fff; align-self: flex-end; border-bottom-right-radius: 3px; }
+    .chat-typing { display: flex; gap: 4px; align-items: center; padding: 10px 14px; }
+    .chat-typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--slate); animation: blink 1.2s infinite; }
+    .chat-typing span:nth-child(2) { animation-delay: 0.2s; }
+    .chat-typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+
+    /* PRINT */
+    @media print {
+      body { background: white; }
+      header, .sidebar, #ai-chatbox, .modal-overlay, button, .filter-tabs, .section-header p, .section-eyebrow { display: none !important; }
+      .app-layout { display: block; }
+      .main-content { padding: 0; max-width: 100%; }
+      .section { display: none !important; }
+      #section-schedule { display: block !important; }
+      .sched-slot { break-inside: avoid; }
+      .sched-period-block { break-inside: avoid; }
+    }
+
+    @media (max-width: 768px) {
+      .app-layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .main-content { padding: 20px; }
+      .form-row { grid-template-columns: 1fr; }
+      .faculty-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>SKA <span>Schedule Builder</span></h1>
+    <p>Stella K. Abraham High School for Girls · Schedule Management System</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div id="sync-status" style="font-size:0.75rem;padding:5px 12px;border-radius:20px;background:rgba(255,255,255,0.12);color:#fff;display:flex;align-items:center;gap:6px">
+      <span id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#4caf50;display:inline-block"></span>
+      <span id="sync-label">Auto-saved</span>
+    </div>
+    <button onclick="exportData()" style="font-size:0.75rem;padding:5px 12px;border-radius:20px;background:rgba(255,255,255,0.12);color:#fff;border:none;cursor:pointer">⬇ Export</button>
+    <label style="font-size:0.75rem;padding:5px 12px;border-radius:20px;background:rgba(255,255,255,0.12);color:#fff;cursor:pointer">⬆ Import<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+    <div class="header-badge">v1.0 · HTML Prototype</div>
+  </div>
+</header>
+  </div>
+</div>
+
+<div class="app-layout">
+  <nav class="sidebar">
+    <div class="sidebar-label">Setup</div>
+    <div class="nav-item active" onclick="showSection('teachers', this)">
+      <div class="nav-icon" style="background:#e8f0fe">👩‍🏫</div> Faculty Directory
+    </div>
+    <div class="nav-item" onclick="showSection('students', this)">
+      <div class="nav-icon" style="background:#f3e8ff">🎓</div> Students
+    </div>
+    <div class="nav-divider"></div>
+    <div class="sidebar-label">Schedule</div>
+    <div class="nav-item" onclick="showSection('schedule', this)">
+      <div class="nav-icon" style="background:#d8f3dc">📅</div> View Schedule
+    </div>
+    <div class="nav-divider"></div>
+    <div class="sidebar-label">Summary</div>
+    <div class="nav-item" onclick="showSection('overview', this)">
+      <div class="nav-icon" style="background:#fff8e1">📊</div> Overview
+    </div>
+  </nav>
+
+  <main class="main-content">
+
+    <!-- ==================== TEACHERS ==================== -->
+    <div id="section-teachers" class="section active">
+      <div class="section-header">
+        <div class="section-eyebrow">Step 1</div>
+        <h2>Faculty Directory</h2>
+        <p>All SKA faculty are preloaded. Click any teaching staff member to set their availability and room preferences. Green = availability set.</p>
+      </div>
+
+      <div class="add-teacher-toggle">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="search-bar" style="margin:0;width:220px">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="faculty-search" placeholder="Search faculty..." oninput="filterFaculty()">
+          </div>
+          <div class="filter-tabs" style="margin:0">
+            <div class="filter-tab active" onclick="setFilter('all', this)">All</div>
+            <div class="filter-tab" onclick="setFilter('teaching', this)">Teaching</div>
+            <div class="filter-tab" onclick="setFilter('limudei', this)">Limudei Kodesh</div>
+            <div class="filter-tab" onclick="setFilter('general', this)">General Studies</div>
+            <div class="filter-tab" onclick="setFilter('pending', this)">Needs Availability</div>
+          </div>
+        </div>
+        <button class="btn btn-gold btn-sm" onclick="toggleAddTeacher()">+ Add Staff</button>
+        <button class="btn btn-danger btn-sm" onclick="openDeleteStaffModal()" style="margin-left:16px">− Delete Staff</button>
+      </div>
+
+      <!-- Add new teacher form (hidden by default) -->
+      <div class="card" id="add-teacher-form" style="display:none">
+        <div class="card-title"><div class="dot"></div>Add New Staff Member</div>
+        <div class="form-row triple">
+          <div class="form-group">
+            <label>Title</label>
+            <select id="new-title">
+              <option>Mrs.</option><option>Ms.</option><option>Mr.</option><option>Dr.</option><option>Rabbi</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="new-first" placeholder="First">
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="new-last" placeholder="Last">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Department</label>
+            <select id="new-dept">
+              <option value="Limudei Kodesh">Limudei Kodesh</option>
+              <option value="English">English</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Science">Science / STEM</option>
+              <option value="History">Social Studies / History</option>
+              <option value="Ivrit">Ivrit</option>
+              <option value="Physical Education">Physical Education</option>
+              <option value="Elective">Elective</option>
+              <option value="Administration">Administration (non-teaching)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Role / Subjects</label>
+            <input type="text" id="new-role" placeholder="e.g. Chumash, Navi .H">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="addNewStaff()">+ Add to Directory</button>
+          <button class="btn btn-outline" onclick="toggleAddTeacher()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Faculty Grid -->
+      <div id="faculty-grid" class="faculty-grid"></div>
+    </div>
+
+    <!-- ==================== STUDENTS ==================== -->
+    <div id="section-students" class="section">
+      <div class="section-header">
+        <div class="section-eyebrow">Step 2</div>
+        <h2>Student Directory</h2>
+        <p>Students are organized by graduation year. Current grade is calculated automatically based on today's date.</p>
+      </div>
+
+      <div class="add-teacher-toggle" style="flex-wrap:wrap;gap:10px">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div class="search-bar" style="margin:0;width:220px">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="student-search" placeholder="Search students..." oninput="filterStudents()">
+          </div>
+          <div class="filter-tabs" style="margin:0" id="student-filter-tabs">
+            <div class="filter-tab active" onclick="setStudentFilter('all', this)">All</div>
+            <div class="filter-tab" onclick="setStudentFilter('12', this)">12th Grade</div>
+            <div class="filter-tab" onclick="setStudentFilter('11', this)">11th Grade</div>
+            <div class="filter-tab" onclick="setStudentFilter('10', this)">10th Grade</div>
+            <div class="filter-tab" onclick="setStudentFilter('9', this)">9th Grade</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-gold btn-sm" onclick="openStudentModal('add-student')">+ Add Student</button>
+          <button class="btn btn-primary btn-sm" onclick="openStudentModal('add-grade')">+ Add Grade</button>
+          <button class="btn btn-outline btn-sm" onclick="openAddTrackModal()">+ Add Track</button>
+          <button class="btn btn-outline btn-sm" onclick="openStudentModal('delete-student')">− Delete Student</button>
+          <button class="btn btn-danger btn-sm" onclick="openStudentModal('delete-grade')">− Delete Grade</button>
+        </div>
+      </div>
+
+      <!-- Student Grid -->
+      <div id="student-grid" class="faculty-grid" style="margin-top:16px"></div>
+      <p style="font-size:0.75rem;color:var(--slate);margin-top:12px">Click any student to set their course selections.</p>
+    </div>
+
+    <!-- ==================== SCHEDULE ==================== -->
+    <div id="section-schedule" class="section">
+      <div class="section-header">
+        <div class="section-eyebrow">Step 3</div>
+        <h2>Schedule Builder</h2>
+        <p>Generate a conflict-free master schedule, then edit any slot. Export to PDF when ready.</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="generateSchedule()">⚡ Generate Schedule</button>
+        <button class="btn btn-outline" onclick="exportSchedulePDF()">⬇ Export PDF</button>
+        <button id="undo-btn" class="btn btn-outline" onclick="undoSchedule()" disabled title="Undo (Ctrl+Z)" style="padding:6px 14px;font-size:0.82rem">↩ Undo</button>
+        <button id="redo-btn" class="btn btn-outline" onclick="redoSchedule()" disabled title="Redo (Ctrl+Y)" style="padding:6px 14px;font-size:0.82rem">↪ Redo</button>
+        <div id="sched-conflict-badge" style="display:none;background:var(--red-light);color:var(--red);padding:5px 12px;border-radius:20px;font-size:0.78rem;font-weight:600"></div>
+        <div id="sched-ok-badge" style="display:none;background:var(--green-light);color:var(--green);padding:5px 12px;border-radius:20px;font-size:0.78rem;font-weight:600"></div>
+      </div>
+      <!-- Day tabs -->
+      <div class="filter-tabs" style="margin-bottom:16px">
+        <div class="filter-tab active" onclick="setSchedDay('mon',this)">Monday</div>
+        <div class="filter-tab" onclick="setSchedDay('tue',this)">Tuesday</div>
+        <div class="filter-tab" onclick="setSchedDay('wed',this)">Wednesday</div>
+        <div class="filter-tab" onclick="setSchedDay('thu',this)">Thursday</div>
+        <div class="filter-tab" onclick="setSchedDay('fri',this)">Friday</div>
+      </div>
+      <!-- Grade tabs -->
+      <div class="filter-tabs" style="margin-bottom:20px">
+        <div class="filter-tab active" onclick="setSchedGrade('all',this)">All Grades</div>
+        <div class="filter-tab" onclick="setSchedGrade(9,this)">9th</div>
+        <div class="filter-tab" onclick="setSchedGrade(10,this)">10th</div>
+        <div class="filter-tab" onclick="setSchedGrade(11,this)">11th</div>
+        <div class="filter-tab" onclick="setSchedGrade(12,this)">12th</div>
+      </div>
+      <div id="sched-empty" style="text-align:center;padding:60px 20px;color:var(--slate)">
+        <div style="font-size:3rem;margin-bottom:12px">📅</div>
+        <p style="font-size:0.95rem">Click <strong>Generate Schedule</strong> to auto-assign teachers and students to all class periods.</p>
+      </div>
+      <div id="sched-grid" style="display:none"></div>
+    </div>
+
+    <!-- ==================== OVERVIEW ==================== -->
+    <div id="section-overview" class="section">
+      <div class="section-header">
+        <div class="section-eyebrow">Summary</div>
+        <h2>Overview</h2>
+        <p>Snapshot of all data entered so far.</p>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-number" id="stat-teachers">0</div><div class="stat-label">Faculty</div></div>
+        <div class="stat-card"><div class="stat-number" id="stat-avail">0</div><div class="stat-label">Availability Set</div></div>
+        <div class="stat-card"><div class="stat-number" id="stat-students">0</div><div class="stat-label">Students</div></div>
+        <div class="stat-card"><div class="stat-number">18</div><div class="stat-label">Rooms</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="dot"></div>Teaching Staff with Availability</div>
+        <div id="overview-teachers"><div class="empty-state"><div class="empty-icon">👩‍🏫</div><p>No availability set yet.</p></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="dot"></div>Students on File</div>
+        <div id="overview-students"><div class="empty-state"><div class="empty-icon">🎓</div><p>No students added yet.</p></div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ==================== SLOT EDIT MODAL ==================== -->
+<div class="modal-overlay" id="slot-edit-modal">
+  <div class="modal" style="width:520px">
+    <div class="modal-header">
+      <div><h3 id="slot-edit-title">Edit Class Slot</h3><p id="slot-edit-sub">Period · Day · Grade</p></div>
+      <button class="modal-close" onclick="closeSlotEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Course</label>
+          <input type="text" id="slot-course-input">
+        </div>
+        <div class="form-group">
+          <label>Section</label>
+          <input type="text" id="slot-section-input" placeholder="e.g. H, 1, A">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Room</label>
+          <input type="text" id="slot-room-input" placeholder="e.g. 101, LAB, GYM">
+        </div>
+        <div class="form-group">
+          <label>Teacher</label>
+          <select id="slot-teacher-select">
+            <option value="">— Unassigned —</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:10px">
+        <label>Students Enrolled (<span id="slot-student-count">0</span>)</label>
+        <div style="font-size:0.78rem;color:var(--slate);margin-bottom:6px">Click to remove · Search to add</div>
+        <div class="search-bar" style="margin:0 0 8px">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="slot-student-search" placeholder="Search students to add…" oninput="filterSlotStudents()">
+        </div>
+        <div id="slot-student-list" style="max-height:160px;overflow-y:auto;border:1px solid var(--light-gray);border-radius:7px;padding:6px;display:flex;flex-wrap:wrap;gap:5px"></div>
+        <div id="slot-student-results" style="max-height:120px;overflow-y:auto;border:1px solid var(--light-gray);border-radius:7px;padding:4px;margin-top:6px;display:none"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="deleteSlot()">Delete Slot</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-outline" onclick="closeSlotEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSlotEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AI CHATBOX ==================== -->
+<div id="ai-chatbox" style="position:fixed;bottom:0;right:24px;width:360px;z-index:1200;font-family:'DM Sans',sans-serif">
+  <div id="chat-collapsed" style="background:var(--navy);color:#fff;padding:12px 18px;border-radius:12px 12px 0 0;cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="toggleChat()">
+    <span style="font-weight:600;font-size:0.9rem">✨ Schedule Assistant</span>
+    <span id="chat-toggle-icon">▲</span>
+  </div>
+  <div id="chat-panel" style="background:#fff;border:1px solid var(--light-gray);border-top:none;display:none;flex-direction:column">
+    <div style="padding:10px 14px;background:var(--cream);border-bottom:1px solid var(--light-gray);font-size:0.76rem;color:var(--slate)">
+      Powered by Gemini · <span id="chat-key-status" style="color:var(--red)">No API key set</span>
+      <button onclick="showKeyInput()" style="border:none;background:none;color:var(--gold);cursor:pointer;font-size:0.76rem;text-decoration:underline;padding:0 4px">Set key</button>
+    </div>
+    <div id="chat-key-row" style="display:none;padding:8px 14px;background:#fff3f7;border-bottom:1px solid var(--light-gray);gap:6px;align-items:center">
+      <input type="password" id="gemini-key-input" placeholder="Paste Gemini API key…" style="flex:1;padding:6px 10px;border:1.5px solid var(--light-gray);border-radius:6px;font-size:0.8rem;font-family:'DM Sans',sans-serif">
+      <button class="btn btn-primary btn-sm" onclick="saveGeminiKey()" style="padding:6px 12px;font-size:0.78rem">Save</button>
+    </div>
+    <div id="chat-messages" style="height:240px;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px">
+      <div class="chat-bubble chat-ai">Hi! Describe a scheduling conflict or dilemma and I'll help you resolve it.</div>
+    </div>
+    <div style="padding:10px 14px;border-top:1px solid var(--light-gray);display:flex;gap:8px">
+      <input type="text" id="chat-input" placeholder="e.g. Two teachers in same room period 3…" style="flex:1;padding:8px 12px;border:1.5px solid var(--light-gray);border-radius:7px;font-size:0.83rem;font-family:'DM Sans',sans-serif" onkeydown="if(event.key==='Enter')sendChatMessage()">
+      <button class="btn btn-primary btn-sm" onclick="sendChatMessage()" style="padding:8px 14px">Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DELETE STAFF MODAL ==================== -->
+<div class="modal-overlay" id="delete-staff-modal">
+  <div class="modal" style="width:460px">
+    <div class="modal-header">
+      <div><h3>Delete Staff Member</h3><p>Select a staff member to remove from the directory.</p></div>
+      <button class="modal-close" onclick="closeDeleteStaffModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="search-bar" style="margin-bottom:10px">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="delete-staff-search" placeholder="Search staff…" oninput="filterDeleteStaffList()">
+      </div>
+      <div id="delete-staff-list" style="max-height:260px;overflow-y:auto;border:1px solid var(--light-gray);border-radius:7px;padding:4px"></div>
+      <div id="delete-staff-warning" style="display:none;margin-top:10px" class="alert alert-warning"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeDeleteStaffModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDeleteStaff()">Delete Staff Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ASSIGN CLASS MODAL ==================== -->
+<div class="modal-overlay" id="assign-class-modal">
+  <div class="modal" style="width:460px">
+    <div class="modal-header">
+      <div>
+        <h3 id="assign-staff-name">Staff Name</h3>
+        <p>Assign a class or seminar for this staff member to teach.</p>
+      </div>
+      <button class="modal-close" onclick="closeAssignModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row single">
+        <div class="form-group">
+          <label>Class / Subject to Teach</label>
+          <input type="text" id="assign-class-input" placeholder="e.g. Tefillah, Senior Seminar, Chesed…">
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="form-group">
+          <label>Department</label>
+          <select id="assign-dept-select">
+            <option value="Limudei Kodesh">Limudei Kodesh</option>
+            <option value="English">English</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="Science">Science / STEM</option>
+            <option value="History">Social Studies / History</option>
+            <option value="Ivrit">Ivrit</option>
+            <option value="Physical Education">Physical Education</option>
+            <option value="Elective">Elective</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeAssignModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAssignedClass()">Assign Class</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AVAILABILITY MODAL ==================== -->
+<div class="modal-overlay" id="avail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3 id="modal-teacher-name">Teacher Name</h3>
+        <p id="modal-teacher-role">Role</p>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="sub-section">
+        <div class="sub-title">Preferred Room</div>
+        <select id="modal-room" style="width:100%;padding:9px 12px;border:1.5px solid var(--light-gray);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.875rem;appearance:none">
+          <option value="">-- No Preference --</option>
+          <option value="SKA LAB">Science Lab (SKA LAB)</option>
+          <option value="SKA STEM">STEM Room (SKA STEM)</option>
+          <option value="SKA Gym">Gymnasium (SKA Gym)</option>
+          <option value="SKA Library">Library (SKA Library)</option>
+          <option value="SKA Auditorium">Auditorium (SKA Auditorium)</option>
+          <option value="SKA 001">Room 001</option><option value="SKA 002">Room 002</option>
+          <option value="SKA 003">Room 003</option><option value="SKA 004">Room 004</option>
+          <option value="SKA 005">Room 005</option><option value="SKA 100">Room 100</option>
+          <option value="SKA 101">Room 101</option><option value="SKA 102">Room 102</option>
+          <option value="SKA 103">Room 103</option><option value="SKA 104">Room 104</option>
+          <option value="SKA 105">Room 105</option><option value="SKA 106">Room 106</option>
+          <option value="SKA 107">Room 107</option><option value="SKA 108">Room 108</option>
+          <option value="SKA 109">Room 109</option><option value="SKA 110">Room 110</option>
+          <option value="SKA 112">Room 112</option><option value="SKA 205">Room 205</option>
+        </select>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title">Available Periods by Day</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:8px">
+          <div><div class="period-day-label">Monday</div><div id="modal-periods-mon"></div></div>
+          <div><div class="period-day-label">Tuesday</div><div id="modal-periods-tue"></div></div>
+          <div><div class="period-day-label">Wednesday</div><div id="modal-periods-wed"></div></div>
+          <div><div class="period-day-label">Thursday</div><div id="modal-periods-thu"></div></div>
+          <div><div class="period-day-label">Friday</div><div id="modal-periods-fri"></div></div>
+        </div>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title">Additional Notes</div>
+        <textarea id="modal-notes" rows="2" style="width:100%;padding:9px 12px;border:1.5px solid var(--light-gray);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.875rem;resize:vertical" placeholder="e.g. not available Period 9 on Thursdays, prefers mornings..."></textarea>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="remove-assignment-btn" style="display:none;margin-right:auto" onclick="removeTeachingAssignment()">Remove Assignment</button>
+      <button class="btn btn-outline" onclick="undoAvailability()" title="Undo last saved availability" style="margin-right:auto">↩ Undo</button>
+      <button class="btn btn-outline" onclick="clearAvailability()" title="Uncheck all periods">✕ Clear</button>
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAvailability()">Save Availability</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== STUDENT MODALS ==================== -->
+
+<!-- Add Student Modal -->
+<div class="modal-overlay" id="add-student-modal">
+  <div class="modal" style="width:460px">
+    <div class="modal-header">
+      <div><h3>Add Student</h3><p>Enter the student's name and graduation year.</p></div>
+      <button class="modal-close" onclick="closeStudentModal('add-student-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>First Name</label><input type="text" id="new-student-first" placeholder="e.g. Leah"></div>
+        <div class="form-group"><label>Last Name</label><input type="text" id="new-student-last" placeholder="e.g. Cohen"></div>
+      </div>
+      <div class="form-row single">
+        <div class="form-group">
+          <label>Graduating Year (Class of…)</label>
+          <select id="new-student-gradyear">
+            <option value="">-- Select Year --</option>
+          </select>
+        </div>
+      </div>
+      <p class="grade-note" id="new-student-grade-preview" style="margin-top:6px"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeStudentModal('add-student-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddStudent()">Add Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Grade Modal -->
+<div class="modal-overlay" id="add-grade-modal">
+  <div class="modal" style="width:580px">
+    <div class="modal-header">
+      <div><h3>Add Grade</h3><p>Select a graduating year, then paste in the student list.</p></div>
+      <button class="modal-close" onclick="closeStudentModal('add-grade-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row single">
+        <div class="form-group">
+          <label>Graduating Year (Class of…)</label>
+          <select id="new-grade-year">
+            <option value="">-- Select Year --</option>
+          </select>
+        </div>
+      </div>
+      <p class="grade-note" id="new-grade-preview" style="margin-top:2px;margin-bottom:14px"></p>
+
+      <div class="form-group" style="margin-bottom:10px">
+        <label>Paste Student List</label>
+        <textarea id="grade-paste-input" rows="8" oninput="parseGradePaste()"
+          style="width:100%;padding:9px 12px;border:1.5px solid var(--light-gray);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.82rem;resize:vertical"
+          placeholder="Paste names here — one per line. Accepts any of these formats:&#10;  Last, First&#10;  Last, First   Room 113   Mrs. Smith&#10;  First Last"></textarea>
+      </div>
+
+      <div id="grade-paste-preview" style="display:none">
+        <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--slate);margin-bottom:8px">
+          Preview — <span id="grade-parse-count">0</span> students parsed
+        </div>
+        <div id="grade-parse-names" style="display:flex;flex-wrap:wrap;gap:5px;max-height:140px;overflow-y:auto;padding:2px 0"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeStudentModal('add-grade-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddGrade()">Add Grade &amp; Students</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Student Modal -->
+<div class="modal-overlay" id="delete-student-modal">
+  <div class="modal" style="width:460px">
+    <div class="modal-header">
+      <div><h3>Delete Student</h3><p>Select a student to remove from the directory.</p></div>
+      <button class="modal-close" onclick="closeStudentModal('delete-student-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row single">
+        <div class="form-group">
+          <label>Select Student</label>
+          <select id="delete-student-select">
+            <option value="">-- Select Student --</option>
+          </select>
+        </div>
+      </div>
+      <div id="delete-student-warning" style="display:none;margin-top:10px" class="alert"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeStudentModal('delete-student-modal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDeleteStudent()">Delete Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Grade Modal -->
+<div class="modal-overlay" id="delete-grade-modal">
+  <div class="modal" style="width:400px">
+    <div class="modal-header">
+      <div><h3>Delete Grade</h3><p>Remove all students in a graduating class.</p></div>
+      <button class="modal-close" onclick="closeStudentModal('delete-grade-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row single">
+        <div class="form-group">
+          <label>Graduating Year (Class of…)</label>
+          <select id="delete-grade-year">
+            <option value="">-- Select Year --</option>
+          </select>
+        </div>
+      </div>
+      <p id="delete-grade-warning" style="font-size:0.83rem;color:var(--red);margin-top:8px"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeStudentModal('delete-grade-modal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDeleteGrade()">Delete Grade</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ADD TRACK MODAL ==================== -->
+<div class="modal-overlay" id="add-track-modal">
+  <div class="modal" style="width:620px">
+    <div class="modal-header">
+      <div><h3>Add Class Track</h3><p>Create a class section and assign students to it.</p></div>
+      <button class="modal-close" onclick="closeAddTrackModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row triple">
+        <div class="form-group">
+          <label>Track Name</label>
+          <input type="text" id="track-name-input" placeholder="e.g. Chumash .A, Algebra 1">
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <select id="track-dept-input">
+            <option value="Limudei Kodesh">Limudei Kodesh</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="Science">Science / STEM</option>
+            <option value="English">English</option>
+            <option value="History">Social Studies / History</option>
+            <option value="Ivrit">Ivrit</option>
+            <option value="Physical Education">Physical Education</option>
+            <option value="Elective">Elective</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Grade</label>
+          <select id="track-grade-input" onchange="filterTrackStudents()">
+            <option value="">All Grades</option>
+            <option value="9">Grade 9</option>
+            <option value="10">Grade 10</option>
+            <option value="11">Grade 11</option>
+            <option value="12">Grade 12</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title">Selected Students (<span id="track-selected-count">0</span>)</div>
+        <div id="track-selected-chips" style="display:flex;flex-wrap:wrap;gap:6px;min-height:32px;padding:4px 0"></div>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title">Add Students</div>
+        <div class="search-bar" style="margin-bottom:8px">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="track-student-search" placeholder="Search students…" oninput="filterTrackStudents()">
+        </div>
+        <div id="track-student-list" style="max-height:220px;overflow-y:auto;border:1px solid var(--light-gray);border-radius:7px;padding:4px"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeAddTrackModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTrack()">Save Track</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== STUDENT COURSE MODAL ==================== -->
+<div class="modal-overlay" id="student-course-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3 id="sc-student-name">Student Name</h3>
+        <p id="sc-student-grade">Grade · Class of</p>
+      </div>
+      <button class="modal-close" onclick="closeStudentCourseModal()">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="sc-tab-choices" onclick="switchStudentTab('choices')">Course Choices</button>
+      <button class="modal-tab" id="sc-tab-enrolled" onclick="switchStudentTab('enrolled')">Enrolled Classes</button>
+    </div>
+    <div class="modal-body" id="sc-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeStudentCourseModal()">Close</button>
+      <button class="btn btn-primary" id="sc-save-btn" onclick="saveStudentCourses()">Save Courses</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================
+// PERIOD DEFINITIONS
+// =====================================================
+const PERIODS_MTH = [
+  { id: '1',  name: 'Period 1',  start: '8:30 AM',  end: '9:15 AM'  },
+  { id: '2',  name: 'Period 2',  start: '9:18 AM',  end: '10:03 AM' },
+  { id: '3',  name: 'Period 3',  start: '10:06 AM', end: '10:51 AM' },
+  { id: '4',  name: 'Period 4',  start: '11:02 AM', end: '11:47 AM' },
+  { id: '5A', name: 'Period 5A', start: '11:50 AM', end: '12:35 PM' },
+  { id: '5B', name: 'Period 5B', start: '12:38 PM', end: '1:23 PM'  },
+  { id: '6',  name: 'Period 6',  start: '1:26 PM',  end: '2:11 PM'  },
+  { id: '7',  name: 'Period 7',  start: '2:14 PM',  end: '2:59 PM'  },
+  { id: '8',  name: 'Period 8',  start: '3:12 PM',  end: '3:57 PM'  },
+  { id: '9',  name: 'Period 9',  start: '4:00 PM',  end: '4:45 PM'  },
+];
+const PERIODS_FRI = [
+  { id: 'F1', name: 'Period 1', start: '8:30 AM',  end: '9:12 AM'  },
+  { id: 'F2', name: 'Period 2', start: '9:15 AM',  end: '9:57 AM'  },
+  { id: 'F3', name: 'Period 3', start: '10:00 AM', end: '10:42 AM' },
+  { id: 'F4', name: 'Period 4', start: '10:56 AM', end: '11:38 AM' },
+  { id: 'F5', name: 'Period 5', start: '11:41 AM', end: '12:23 PM' },
+  { id: 'F6', name: 'Period 6', start: '12:26 PM', end: '1:10 PM'  },
+];
+
+// =====================================================
+// FACULTY DATA (preloaded from directory)
+// =====================================================
+const FACULTY = [
+  // Teaching staff
+  { title: '', first: '',     last: 'Teacher01',      role: 'Science, Limudei Kodesh',         dept: 'Science',            teaching: true  },
+  { title: '', first: '',    last: 'Teacher02',     role: 'Graphic Design',                  dept: 'Elective',           teaching: true  },
+  { title: '', first: '', last: 'Teacher03',    role: 'English & AP English',            dept: 'English',            teaching: true  },
+  { title: '', first: '',   last: 'Teacher04',    role: 'Limudei Kodesh, Jewish History & Beit Midrash', dept: 'Limudei Kodesh', teaching: true },
+  { title: '', first: '',     last: 'Teacher05',          role: 'AP Psychology, Jewish History & Parsha Press', dept: 'History',        teaching: true },
+  { title: '', first: '',     last: 'Teacher06',         role: 'Jewish History Dept Chair & AP US History', dept: 'History', teaching: true },
+  { title: '', first: '',     last: 'Teacher07',     role: 'Ivrit, Jewish History',           dept: 'Ivrit',              teaching: true  },
+  { title: '', first: '',    last: 'Teacher08',        role: 'Rosh Beit Midrash, Limudei Kodesh, AP Psych & Navi Dept Chair', dept: 'Limudei Kodesh', teaching: true },
+  { title: '',  first: '',    last: 'Teacher09',     role: 'Science & Math',                  dept: 'Science',            teaching: true  },
+  { title: '',first: '',    last: 'Teacher10',      role: 'Limudei Kodesh & Jewish History', dept: 'Limudei Kodesh',     teaching: true  },
+  { title: '',  first: '',    last: 'Teacher11',      role: 'Social Worker (Gr. 11 & 12)',     dept: 'Administration',     teaching: false },
+  { title: '', first: '',      last: 'Teacher12',     role: 'Social Worker (Gr. 10)',          dept: 'Administration',     teaching: false },
+  { title: '', first: '',      last: 'Teacher13',     role: 'Ivrit',                           dept: 'Ivrit',              teaching: true  },
+  { title: '', first: '',     last: 'Teacher14',   role: 'Limudei Kodesh',                  dept: 'Limudei Kodesh',     teaching: true  },
+  { title: '', first: '',  last: 'Teacher15',        role: 'History & Model UN',              dept: 'History',            teaching: true  },
+  { title: '',  first: '',     last: 'Teacher16',        role: 'Science Dept Chair, AP Chemistry & Limudei Kodesh', dept: 'Science', teaching: true },
+  { title: '', first: '',    last: 'Teacher17',    role: 'Athletic Director & Physical Education', dept: 'Physical Education', teaching: true },
+  { title: '', first: '',     last: 'Teacher18',        role: 'Limudei Kodesh & Israel Guidance Counselor', dept: 'Limudei Kodesh', teaching: true },
+  { title: '', first: '',  last: 'Teacher19',       role: 'Spanish',                         dept: 'Elective',           teaching: true  },
+  { title: '', first: '',      last: 'Teacher20',   role: 'Beit Midrash',                    dept: 'Limudei Kodesh',     teaching: true  },
+  { title: '', first: '',      last: 'Teacher21',       role: 'English',                         dept: 'English',            teaching: true  },
+  { title: '',  first: '',    last: 'Teacher22',        role: 'History, AP World History & AP Gov', dept: 'History',          teaching: true  },
+  { title: '', first: '',  last: 'Teacher23',   role: 'Head of School, Chumash & Navi',  dept: 'Limudei Kodesh',     teaching: true  },
+  { title: '', first: '',     last: 'Teacher24',   role: 'Limudei Kodesh',                  dept: 'Limudei Kodesh',     teaching: true  },
+  { title: '',  first: '',      last: 'Teacher25',        role: 'Mathematics & AP Calculus',       dept: 'Mathematics',        teaching: true  },
+  { title: '', first: '',    last: 'Teacher26',     role: 'Limudei Kodesh',                  dept: 'Limudei Kodesh',     teaching: true  },
+  { title: '',  first: '',     last: 'Teacher27',       role: 'English & Honors English',        dept: 'English',            teaching: true  },
+  { title: '', first: '',     last: 'Teacher28',     role: 'Science',                         dept: 'Science',            teaching: true  },
+  { title: '',  first: '',    last: 'Teacher29',      role: 'Limudei Kodesh & Beit Midrash',   dept: 'Limudei Kodesh',     teaching: true  },
+  { title: '', first: '',     last: 'Teacher30',      role: 'Limudei Kodesh',                  dept: 'Limudei Kodesh',     teaching: true  },
+  { title: '',  first: '',    last: 'Teacher31',        role: 'STEM, IT Coordinator & AP Physics', dept: 'Science',          teaching: true  },
+  { title: '', first: '',   last: 'Teacher32',      role: 'English, Creative Arts & English Dept Chair', dept: 'English', teaching: true },
+  { title: '', first: '',      last: 'Teacher33',    role: 'History & History of Israel',     dept: 'History',            teaching: true  },
+  { title: '',first: '',   last: 'Teacher34',     role: 'Limudei Kodesh',                  dept: 'Limudei Kodesh',     teaching: true  },
+  { title: '', first: '',    last: 'Teacher35',       role: 'Limudei Kodesh & Director of Israel Guidance', dept: 'Limudei Kodesh', teaching: true },
+  { title: '',first: '',     last: 'Teacher36',         role: 'Halacha / TSBP Dept Chair',       dept: 'Limudei Kodesh',     teaching: true  },
+  { title: '', first: '', last: 'Teacher37',    role: 'Science',                         dept: 'Science',            teaching: true  },
+  { title: '',  first: '',     last: 'Teacher38',         role: 'Limudei Kodesh, TSBP & Beit Midrash', dept: 'Limudei Kodesh', teaching: true },
+  { title: '',  first: '',     last: 'Teacher39',         role: 'Halacha & Gemara',                dept: 'Limudei Kodesh',     teaching: true  },
+  { title: '', first: '',      last: 'Teacher40',       role: 'Art & Limudei Kodesh',            dept: 'Elective',           teaching: true  },
+  { title: '', first: '',   last: 'Teacher41',   role: 'Limudei Kodesh',                  dept: 'Limudei Kodesh',     teaching: true  },
+  { title: '', first: '',    last: 'Teacher42',        role: 'Mathematics',                     dept: 'Mathematics',        teaching: true  },
+  { title: '', first: '',  last: 'Teacher43',       role: 'Mathematics',                     dept: 'Mathematics',        teaching: true  },
+  { title: '',  first: '',     last: 'Teacher44',    role: 'Physical Education',              dept: 'Physical Education', teaching: true  },
+  { title: '',  first: '',     last: 'Teacher45',       role: 'English',                         dept: 'English',            teaching: true  },
+  { title: '',first: '',          last: 'Teacher46',   role: 'Halacha',                         dept: 'Limudei Kodesh',     teaching: true  },
+  // Admin who also teach
+  { title: '', first: '',    last: 'Teacher47',       role: 'Principal, Chumash & Mathematics', dept: 'Limudei Kodesh',    teaching: true  },
+  { title: '', first: '',   last: 'Teacher48',  role: 'Associate Principal & Chumash',   dept: 'Limudei Kodesh',     teaching: true  },
+  { title: '', first: '',    last: 'Teacher49',       role: 'Assistant Principal & Needlepoint Club', dept: 'Elective',   teaching: true  },
+  // Non-teaching / admin
+  { title: '', first: '',    last: 'Teacher50',         role: 'Asst. to Director of Student Services', dept: 'Administration', teaching: false },
+  { title: '',first: '',    last: 'Teacher51',    role: 'Mashgiach Ruchani',               dept: 'Administration',     teaching: false },
+  { title: '', first: '',     last: 'Teacher52',      role: 'Student Services',                dept: 'Administration',     teaching: false },
+  { title: '', first: '',    last: 'Teacher53',   role: 'Office Staff',                    dept: 'Administration',     teaching: false },
+  { title: '', first: '',    last: 'Teacher54',    role: 'Administrative Assistant',        dept: 'Administration',     teaching: false },
+  { title: '', first: '',    last: 'Teacher55',       role: 'Chesed Coordinator',              dept: 'Administration',     teaching: false },
+  { title: '', first: '',     last: 'Teacher56',     role: 'Educational Technology Coordinator', dept: 'Administration', teaching: false },
+  { title: '',  first: '',     last: 'Teacher57',         role: 'Director of College Guidance',    dept: 'Administration',     teaching: false },
+  { title: '',  first: '',   last: 'Teacher58',          role: 'IT',                              dept: 'Administration',     teaching: false },
+  { title: '', first: '',  last: 'Teacher59',         role: 'Registrar & Asst. to College Guidance', dept: 'Administration', teaching: false },
+  { title: '', first: '',   last: 'Teacher60',       role: 'Director of Marketing & Graphic Design', dept: 'Administration', teaching: false },
+  { title: '', first: '',     last: 'Teacher61',         role: 'Art Director',                    dept: 'Administration',     teaching: false },
+  { title: '', first: '',    last: 'Teacher62',      role: 'Attendance Coordinator',          dept: 'Administration',     teaching: false },
+  { title: '',  first: '',     last: 'Teacher63',        role: 'Guidance Dept. Coordinator',      dept: 'Administration',     teaching: false },
+  { title: '', first: '', last: 'Teacher64',      role: 'BOCES Nurse',                     dept: 'Administration',     teaching: false },
+  { title: '', first: '',     last: 'Teacher65',       role: 'Social Worker (Gr. 9)',           dept: 'Administration',     teaching: false },
+  { title: '', first: '',      last: 'Teacher66',      role: 'Executive Assistant',             dept: 'Administration',     teaching: false },
+  { title: '', first: '',      last: 'Teacher67',       role: 'Associate Director of Programming', dept: 'Administration',   teaching: false },
+  { title: '', first: '',    last: 'Teacher68',        role: 'Student Services',                dept: 'Administration',     teaching: false },
+];
+
+// Add availability field to each; remember original non-teaching status
+FACULTY.forEach((f, i) => { f.id = i; f.availability = null; f.room = ''; f.notes = ''; f.wasNonTeaching = !f.teaching; f.assignedClass = ''; });
+
+// School year: set this to the graduation year of the current senior class
+const SCHOOL_YEAR = 2021;
+
+// =====================================================
+// COURSE DATA
+// =====================================================
+const REQUIRED = {
+  all: ['Tefilah', 'Halacha', 'Gym'],
+  9:  ['English 9', 'Global Studies', 'Biology', 'Studio Art', 'Freshman Seminar'],
+  10: ['English 10', 'Chemistry', 'Sophomore Seminar'],
+  11: ['Jewish History'],
+  12: ['English IV', 'US Government & Economics']
+};
+
+// AP / advanced placement options by grade
+const AP_OPTIONS = {
+  10: [
+    { field: 'worldHistory', label: 'History', ap: 'AP World History', regular: 'Global History (Regular)' }
+  ],
+  11: [
+    { field: 'english',    label: 'English',         choices: ['AP Literature', 'Honors English'], regular: 'English 11 (Regular)' },
+    { field: 'usHistory',  label: 'US History',       ap: 'AP US History',                         regular: 'US History (Regular)' },
+    { field: 'cs',         label: 'Computer Science', ap: 'AP Computer Science Principles',         regular: null },
+  ]
+};
+const MATH_BY_GRADE = {
+  9:  [{ label: 'Algebra 1', val: 'algebra1' }, { label: 'Geometry', val: 'geometry' }],
+  10: [{ label: 'Geometry', val: 'geometry' }, { label: 'Algebra II / Trigonometry', val: 'alg2' }],
+  11: [{ label: 'Algebra II / Trigonometry', val: 'alg2' }, { label: 'Pre-Calculus', val: 'precalc' }],
+  12: []
+};
+const G12_MATH = ['AP Calculus AB', 'AP Calculus BC', 'College Calculus (LIU Credit)', 'College Finance (LIU Credit)'];
+const G12_SCIENCE = ['AP Biology', 'AP Chemistry', 'AP Physics / Advanced Physics', 'Anatomy & Physiology', 'Forensics', 'Marine Biology', 'AP Psychology'];
+const G12_ELECTIVE = ['Graphic Design IV', 'AP Studio Art', 'AP Computer Science Principles', 'Spanish III', 'Beit Midrash', 'Chassidus', 'Gemara', 'Chidon HaTanach'];
+const ELECTIVES_BY_GRADE = {
+  9:  ['Graphic Design I', 'Art Academy', 'Spanish I', 'Principles of Engineering', 'E2K Math Enrichment'],
+  10: ['Graphic Design II', 'Art Academy', 'Spanish I / II', 'Engineering', 'E2K Science Enrichment', 'AP Computer Science Principles'],
+  11: ['Graphic Design III', 'Studio Art', 'Spanish I / II / III', 'AP Computer Science Principles', 'Adobe Photoshop & Illustrator Certification', 'Robotics & Engineering Design'],
+};
+const JEWISH_ELECTIVES = { 11: ['Beit Midrash', 'Chassidus', 'Gemara', 'Chidon HaTanach'], 12: ['Ulpan', 'Beit Midrash', 'Chassidus', 'Gemara', 'Chidon HaTanach'] };
+const CHUMASH_BY_GRADE  = { 9: 'Chumash 9',  10: 'Chumash 10',  11: 'Chumash 11',  12: 'Chumash 12'  };
+const NAVI_BY_GRADE     = { 9: 'Navi 9',     10: 'Navi 10',     11: 'Navi 11',     12: 'Navi 12'     };
+const HALACHA_BY_GRADE  = { 9: 'Halacha 9',  10: 'Halacha 10',  11: 'Halacha 11',  12: 'Halacha 12'  };
+const IVRIT_BY_GRADE    = { 9: 'Ivrit 9',    10: 'Ivrit 10',    11: 'Ivrit 11' };
+
+// =====================================================
+// STATE
+// =====================================================
+const students = []; // { first, last, gradYear }
+const trackedGrades = new Set(); // graduating years tracked (even if no students yet)
+let currentFilter = 'all';
+let currentStudentFilter = 'all';
+let currentModalFacultyId = null;
+let _facultyHistory = [];
+let _facultyHistoryIdx = -1;
+let currentStudentId = null;
+let currentStudentTab = 'choices';
+let _nextStudentId = 0;
+const TRACKS = []; // { id, name, dept, grade, studentIds: [] }
+let _nextTrackId = 0;
+let _trackSelectedIds = new Set(); // temp selection while modal is open
+
+// =====================================================
+// NAVIGATION
+// =====================================================
+function showSection(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  if (name === 'overview') updateOverview();
+}
+
+// =====================================================
+// FACULTY GRID
+// =====================================================
+function renderFacultyGrid() {
+  const search = (document.getElementById('faculty-search').value || '').toLowerCase();
+  const grid = document.getElementById('faculty-grid');
+
+  let filtered = FACULTY.filter(f => {
+    const name = `${f.first} ${f.last}`.toLowerCase();
+    const matchSearch = !search || name.includes(search) || f.role.toLowerCase().includes(search);
+    let matchFilter = true;
+    if (currentFilter === 'teaching') matchFilter = f.teaching;
+    if (currentFilter === 'limudei') matchFilter = f.dept === 'Limudei Kodesh';
+    if (currentFilter === 'general') matchFilter = f.teaching && f.dept !== 'Limudei Kodesh';
+    if (currentFilter === 'pending') matchFilter = f.teaching && !f.availability;
+    return matchSearch && matchFilter;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><p>No faculty match your search.</p></div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(f => {
+    const hasAvail = !!f.availability;
+    const isAdmin = !f.teaching;
+    let statusHtml = '';
+    if (hasAvail) statusHtml = '<div class="faculty-status status-set">✓ Availability set</div>';
+    else if (isAdmin) statusHtml = '<div class="faculty-status status-admin">Non-teaching</div>';
+    else statusHtml = '<div class="faculty-status status-pending">⏳ Needs availability</div>';
+
+    return `<div class="faculty-card ${hasAvail ? 'has-availability' : ''}" style="cursor:pointer" onclick="openModal(${f.id})">
+      <div class="faculty-name">${f.title} ${f.first} ${f.last}</div>
+      <div class="faculty-role">${f.role}</div>
+      ${statusHtml}
+    </div>`;
+  }).join('');
+}
+
+function filterFaculty() { renderFacultyGrid(); }
+function setFilter(val, el) {
+  currentFilter = val;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderFacultyGrid();
+}
+
+let _deleteStaffSelectedId = null;
+
+function openDeleteStaffModal() {
+  _deleteStaffSelectedId = null;
+  document.getElementById('delete-staff-search').value = '';
+  document.getElementById('delete-staff-warning').style.display = 'none';
+  filterDeleteStaffList();
+  document.getElementById('delete-staff-modal').classList.add('open');
+}
+
+function closeDeleteStaffModal() {
+  document.getElementById('delete-staff-modal').classList.remove('open');
+  _deleteStaffSelectedId = null;
+}
+
+function filterDeleteStaffList() {
+  const search = document.getElementById('delete-staff-search').value.toLowerCase();
+  const list = document.getElementById('delete-staff-list');
+  const filtered = FACULTY.filter(f => {
+    const name = `${f.title} ${f.first} ${f.last}`.toLowerCase();
+    return !search || name.includes(search) || f.role.toLowerCase().includes(search);
+  });
+  if (!filtered.length) {
+    list.innerHTML = '<div style="padding:12px;text-align:center;color:var(--slate);font-size:0.82rem">No staff found.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(f => {
+    const sel = _deleteStaffSelectedId === f.id;
+    return `<div class="student-pick-item ${sel ? 'selected' : ''}" onclick="selectDeleteStaff(${f.id})">
+      <span><strong>${f.title} ${f.first} ${f.last}</strong> <span style="font-size:0.74rem;color:var(--slate)">· ${f.role}</span></span>
+      ${sel ? '<span style="color:var(--gold);font-size:1rem">✓</span>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function selectDeleteStaff(id) {
+  _deleteStaffSelectedId = id;
+  const f = FACULTY.find(x => x.id === id);
+  const warn = document.getElementById('delete-staff-warning');
+  warn.textContent = `Remove ${f.title} ${f.first} ${f.last} from the directory?`;
+  warn.style.display = 'block';
+  filterDeleteStaffList();
+}
+
+function confirmDeleteStaff() {
+  if (_deleteStaffSelectedId === null) { alert('Please select a staff member.'); return; }
+  const idx = FACULTY.findIndex(f => f.id === _deleteStaffSelectedId);
+  if (idx === -1) return;
+  FACULTY.splice(idx, 1);
+  closeDeleteStaffModal();
+  renderFacultyGrid();
+  updateStats();
+  saveToLocal();
+}
+
+function toggleAddTeacher() {
+  const form = document.getElementById('add-teacher-form');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function addNewStaff() {
+  const title = document.getElementById('new-title').value;
+  const first = document.getElementById('new-first').value.trim();
+  const last  = document.getElementById('new-last').value.trim();
+  const dept  = document.getElementById('new-dept').value;
+  const role  = document.getElementById('new-role').value.trim();
+  if (!first || !last) { alert('Please enter first and last name.'); return; }
+  const isTeaching = dept !== 'Administration';
+  FACULTY.push({ id: FACULTY.length, title, first, last, role, dept, teaching: isTeaching, availability: null, room: '', notes: '' });
+  renderFacultyGrid();
+  scheduleSync();
+  toggleAddTeacher();
+  document.getElementById('new-first').value = '';
+  document.getElementById('new-last').value = '';
+  document.getElementById('new-role').value = '';
+}
+
+// =====================================================
+// AVAILABILITY MODAL
+// =====================================================
+function buildDayPeriods(containerId, periods, savedIds) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = periods.map(p => {
+    const checked = savedIds && savedIds.includes(p.id);
+    return `<label class="period-item-compact ${checked ? 'checked' : ''}">
+      <input type="checkbox" value="${p.id}" ${checked ? 'checked' : ''} onchange="this.closest('.period-item-compact').classList.toggle('checked',this.checked)">
+      <div>
+        <div class="period-name" style="font-size:0.74rem">${p.name}</div>
+        <div class="period-time" style="font-size:0.67rem">${p.start}–${p.end}</div>
+      </div>
+    </label>`;
+  }).join('');
+}
+
+function pushFacultyHistory() {
+  _facultyHistory = _facultyHistory.slice(0, _facultyHistoryIdx + 1);
+  _facultyHistory.push(JSON.stringify(FACULTY));
+  if (_facultyHistory.length > 30) _facultyHistory.shift();
+  _facultyHistoryIdx = _facultyHistory.length - 1;
+}
+
+function undoAvailability() {
+  if (_facultyHistoryIdx < 0) return;
+  const parsed = JSON.parse(_facultyHistory[_facultyHistoryIdx]);
+  _facultyHistoryIdx--;
+  FACULTY.length = 0;
+  parsed.forEach(f => FACULTY.push(f));
+  renderFacultyGrid();
+  updateStats();
+  scheduleSync();
+  closeModal();
+}
+
+function openModal(id) {
+  const f = FACULTY.find(x => x.id === id);
+  if (!f) return;
+  if (!f.teaching) { openAssignModal(id); return; }
+  currentModalFacultyId = id;
+  document.getElementById('modal-teacher-name').textContent = `${f.title} ${f.first} ${f.last}`;
+  document.getElementById('modal-teacher-role').textContent = f.role;
+  document.getElementById('modal-room').value = f.room || '';
+  document.getElementById('modal-notes').value = f.notes || '';
+
+  const av = f.availability || {};
+  ['mon','tue','wed','thu'].forEach(day => buildDayPeriods(`modal-periods-${day}`, PERIODS_MTH, av[day] || []));
+  buildDayPeriods('modal-periods-fri', PERIODS_FRI, av.fri || []);
+
+  // Show remove button only for staff who were originally non-teaching
+  document.getElementById('remove-assignment-btn').style.display = f.wasNonTeaching ? 'inline-flex' : 'none';
+
+  document.getElementById('avail-modal').classList.add('open');
+}
+
+function openAssignModal(id) {
+  currentModalFacultyId = id;
+  const f = FACULTY.find(x => x.id === id);
+  document.getElementById('assign-staff-name').textContent = `${f.title} ${f.first} ${f.last}`;
+  document.getElementById('assign-class-input').value = f.assignedClass || '';
+  document.getElementById('assign-dept-select').value = f.dept || 'Limudei Kodesh';
+  document.getElementById('assign-class-modal').classList.add('open');
+}
+
+function closeAssignModal() {
+  document.getElementById('assign-class-modal').classList.remove('open');
+  currentModalFacultyId = null;
+}
+
+function saveAssignedClass() {
+  if (currentModalFacultyId === null) return;
+  const className = document.getElementById('assign-class-input').value.trim();
+  if (!className) { alert('Please enter a class or subject name.'); return; }
+  const f = FACULTY.find(x => x.id === currentModalFacultyId);
+  f.assignedClass = className;
+  f.dept = document.getElementById('assign-dept-select').value;
+  f.role = f.role ? `${f.role}; ${className}` : className;
+  f.teaching = true;
+  closeAssignModal();
+  renderFacultyGrid();
+  updateStats();
+}
+
+function removeTeachingAssignment() {
+  if (currentModalFacultyId === null) return;
+  const f = FACULTY.find(x => x.id === currentModalFacultyId);
+  if (!confirm(`Remove teaching assignment for ${f.title} ${f.last}? They will return to non-teaching status.`)) return;
+  // Strip the assigned class from role
+  if (f.assignedClass) {
+    f.role = f.role.replace(`; ${f.assignedClass}`, '').replace(f.assignedClass, '').trim().replace(/^;/, '').trim();
+  }
+  f.teaching = false;
+  f.availability = null;
+  f.assignedClass = '';
+  closeModal();
+  renderFacultyGrid();
+  updateStats();
+}
+
+function clearAvailability() {
+  document.querySelectorAll('#avail-modal input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+    cb.closest('.period-item-compact').classList.remove('checked');
+  });
+}
+
+function closeModal() {
+  document.getElementById('avail-modal').classList.remove('open');
+  currentModalFacultyId = null;
+}
+
+function saveAvailability() {
+  if (currentModalFacultyId === null) return;
+  pushFacultyHistory();
+  const av = {};
+  ['mon','tue','wed','thu'].forEach(day => {
+    av[day] = [...document.querySelectorAll(`#modal-periods-${day} input:checked`)].map(c => c.value);
+  });
+  av.fri = [...document.querySelectorAll('#modal-periods-fri input:checked')].map(c => c.value);
+  const room = document.getElementById('modal-room').value;
+  const notes = document.getElementById('modal-notes').value;
+  const f = FACULTY.find(x => x.id === currentModalFacultyId);
+  const hasAny = Object.values(av).some(periods => periods.length > 0);
+  f.availability = hasAny ? av : null;
+  f.room = room;
+  f.notes = notes;
+  closeModal();
+  renderFacultyGrid();
+  updateStats();
+  scheduleSync();
+}
+
+function updateStats() {
+  document.getElementById('stat-teachers').textContent = FACULTY.filter(f => f.teaching).length;
+  document.getElementById('stat-avail').textContent = FACULTY.filter(f => f.teaching && f.availability).length;
+  document.getElementById('stat-students').textContent = students.length;
+}
+
+// =====================================================
+// STUDENTS
+// =====================================================
+function gradeFromGradYear(gradYear) {
+  return 12 - (gradYear - SCHOOL_YEAR);
+}
+
+function getGradYearOptions() {
+  return [SCHOOL_YEAR, SCHOOL_YEAR + 1, SCHOOL_YEAR + 2, SCHOOL_YEAR + 3];
+}
+
+function populateGradYearSelects() {
+  const years = getGradYearOptions();
+  ['new-student-gradyear', 'new-grade-year', 'delete-grade-year'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const placeholder = sel.options[0].cloneNode(true);
+    sel.innerHTML = '';
+    sel.appendChild(placeholder);
+    years.forEach(y => {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = `Class of ${y} (Grade ${gradeFromGradYear(y)})`;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+document.addEventListener('change', function(e) {
+  if (e.target.id === 'new-student-gradyear') {
+    const yr = parseInt(e.target.value);
+    document.getElementById('new-student-grade-preview').textContent =
+      yr ? `This student will be in Grade ${gradeFromGradYear(yr)} for the upcoming school year.` : '';
+  }
+  if (e.target.id === 'new-grade-year') {
+    const yr = parseInt(e.target.value);
+    document.getElementById('new-grade-preview').textContent =
+      yr ? `Grade ${gradeFromGradYear(yr)} — Class of ${yr}` : '';
+  }
+  if (e.target.id === 'delete-grade-year') {
+    const yr = parseInt(e.target.value);
+    const el = document.getElementById('delete-grade-warning');
+    if (yr) {
+      const count = students.filter(s => s.gradYear === yr).length;
+      el.textContent = `This will remove ${count} student${count !== 1 ? 's' : ''} in Grade ${gradeFromGradYear(yr)} (Class of ${yr}).`;
+    } else { el.textContent = ''; }
+  }
+  if (e.target.id === 'delete-student-select') {
+    const idx = parseInt(e.target.value);
+    const warn = document.getElementById('delete-student-warning');
+    if (!isNaN(idx) && students[idx]) {
+      const s = students[idx];
+      warn.textContent = `Remove ${s.first} ${s.last} from Grade ${gradeFromGradYear(s.gradYear)}?`;
+      warn.style.display = 'block';
+      warn.className = 'alert alert-warning';
+    } else { warn.style.display = 'none'; }
+  }
+});
+
+function openStudentModal(type) {
+  populateGradYearSelects();
+  if (type === 'delete-student') {
+    const sel = document.getElementById('delete-student-select');
+    sel.innerHTML = '<option value="">-- Select Student --</option>';
+    students.forEach((s, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${s.last}, ${s.first} (Grade ${gradeFromGradYear(s.gradYear)})`;
+      sel.appendChild(opt);
+    });
+    document.getElementById('delete-student-warning').style.display = 'none';
+  }
+  document.getElementById(type + '-modal').classList.add('open');
+}
+
+function closeStudentModal(modalId) {
+  document.getElementById(modalId).classList.remove('open');
+}
+
+function confirmAddStudent() {
+  const first   = document.getElementById('new-student-first').value.trim();
+  const last    = document.getElementById('new-student-last').value.trim();
+  const gradYear = parseInt(document.getElementById('new-student-gradyear').value);
+  if (!first || !last || !gradYear) { alert('Please fill in all fields.'); return; }
+  students.push({ id: _nextStudentId++, first, last, gradYear, courses: null });
+  trackedGrades.add(gradYear);
+  closeStudentModal('add-student-modal');
+  document.getElementById('new-student-first').value = '';
+  document.getElementById('new-student-last').value = '';
+  document.getElementById('new-student-gradyear').value = '';
+  document.getElementById('new-student-grade-preview').textContent = '';
+  renderStudentGrid();
+  updateStats();
+  syncScheduleStudents();
+}
+
+function parsePasteLine(line) {
+  line = line.trim();
+  if (!line) return null;
+
+  if (line.includes(',')) {
+    // "Last, First" format
+    const commaIdx = line.indexOf(',');
+    const last = line.slice(0, commaIdx).trim();
+    const first = line.slice(commaIdx + 1).trim();
+    if (!last || !first) return null;
+    return { last, first };
+  } else {
+    // "First Last" format
+    const parts = line.split(/\s+/).filter(Boolean);
+    if (parts.length < 2) return null;
+    const first = parts[0];
+    const last = parts.slice(1).join(' ');
+    return { last, first };
+  }
+}
+
+function parseGradePaste() {
+  const raw = document.getElementById('grade-paste-input').value;
+  const lines = raw.split('\n');
+  const parsed = lines.map(parsePasteLine).filter(Boolean);
+  const preview = document.getElementById('grade-paste-preview');
+  const namesDiv = document.getElementById('grade-parse-names');
+  const countEl = document.getElementById('grade-parse-count');
+
+  if (parsed.length === 0) { preview.style.display = 'none'; return; }
+  preview.style.display = 'block';
+  countEl.textContent = parsed.length;
+  namesDiv.innerHTML = parsed.map(s =>
+    `<span style="background:var(--cream);border:1px solid var(--light-gray);border-radius:4px;padding:3px 8px;font-size:0.78rem">${s.first} ${s.last}</span>`
+  ).join('');
+}
+
+function confirmAddGrade() {
+  const gradYear = parseInt(document.getElementById('new-grade-year').value);
+  if (!gradYear) { alert('Please select a graduating year.'); return; }
+
+  const raw = document.getElementById('grade-paste-input').value;
+  const parsed = raw.split('\n').map(parsePasteLine).filter(Boolean);
+
+  trackedGrades.add(gradYear);
+  parsed.forEach(s => students.push({ ...s, gradYear, courses: null, id: _nextStudentId++ }));
+
+  closeStudentModal('add-grade-modal');
+  document.getElementById('new-grade-year').value = '';
+  document.getElementById('new-grade-preview').textContent = '';
+  document.getElementById('grade-paste-input').value = '';
+  document.getElementById('grade-paste-preview').style.display = 'none';
+  renderStudentGrid();
+  updateStats();
+  syncScheduleStudents();
+}
+
+function confirmDeleteStudent() {
+  const idx = parseInt(document.getElementById('delete-student-select').value);
+  if (isNaN(idx) || !students[idx]) { alert('Please select a student.'); return; }
+  students.splice(idx, 1);
+  closeStudentModal('delete-student-modal');
+  renderStudentGrid();
+  updateStats();
+  syncScheduleStudents();
+  saveToLocal();
+}
+
+function confirmDeleteGrade() {
+  const gradYear = parseInt(document.getElementById('delete-grade-year').value);
+  if (!gradYear) { alert('Please select a graduating year.'); return; }
+  for (let i = students.length - 1; i >= 0; i--) {
+    if (students[i].gradYear === gradYear) students.splice(i, 1);
+  }
+  trackedGrades.delete(gradYear);
+  closeStudentModal('delete-grade-modal');
+  document.getElementById('delete-grade-year').value = '';
+  document.getElementById('delete-grade-warning').textContent = '';
+  renderStudentGrid();
+  updateStats();
+  syncScheduleStudents();
+  saveToLocal();
+}
+
+function hasCourses(s) {
+  if (!s.courses) return false;
+  const grade = gradeFromGradYear(s.gradYear);
+  if (grade === 12) return !!(s.courses.g12Math && s.courses.g12Math.length) || !!s.courses.g12Science;
+  return !!(s.courses.math || s.courses.genElective || s.courses.jewishElective);
+}
+
+function renderStudentGrid() {
+  const search = (document.getElementById('student-search').value || '').toLowerCase();
+  const grid = document.getElementById('student-grid');
+  const allGradYears = new Set([...trackedGrades, ...students.map(s => s.gradYear)]);
+
+  if (!allGradYears.size) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🎓</div><p>No grades added yet. Click "+ Add Grade" or "+ Add Student" to get started.</p></div>';
+    return;
+  }
+
+  const years = [...allGradYears].sort((a, b) => a - b);
+  let html = '';
+  let anyVisible = false;
+  years.forEach(yr => {
+    const grade = gradeFromGradYear(yr);
+    if (currentStudentFilter !== 'all' && String(grade) !== currentStudentFilter) return;
+    const gradeStudents = students.map((s, i) => ({ s, i })).filter(({ s }) => {
+      const nameMatch = !search || `${s.first} ${s.last}`.toLowerCase().includes(search);
+      return s.gradYear === yr && nameMatch;
+    });
+    if (search && gradeStudents.length === 0) return;
+    anyVisible = true;
+    html += `<div style="grid-column:1/-1;margin:10px 0 6px;font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--slate)">Grade ${grade} — Class of ${yr} &nbsp;·&nbsp; ${gradeStudents.length} student${gradeStudents.length !== 1 ? 's' : ''}</div>`;
+    if (gradeStudents.length === 0) {
+      html += `<div style="grid-column:1/-1;padding:10px 14px;background:var(--cream);border-radius:8px;font-size:0.82rem;color:var(--slate);font-style:italic">No students in this grade yet.</div>`;
+    } else {
+      gradeStudents.forEach(({ s, i }) => {
+        const done = hasCourses(s);
+        html += `<div class="faculty-card ${done ? 'has-availability' : ''}" onclick="openStudentCourseModal(${i})" style="cursor:pointer">
+          <div class="faculty-name">${s.first} ${s.last}</div>
+          <div class="faculty-role">Grade ${grade} &nbsp;·&nbsp; Class of ${yr}</div>
+          <div class="faculty-status ${done ? 'status-set' : 'status-pending'}">${done ? '✓ Courses selected' : '⏳ Needs course selection'}</div>
+        </div>`;
+      });
+    }
+  });
+
+  grid.innerHTML = anyVisible ? html : '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><p>No students match your search.</p></div>';
+}
+
+function filterStudents() { renderStudentGrid(); }
+function setStudentFilter(val, el) {
+  currentStudentFilter = val;
+  document.querySelectorAll('#student-filter-tabs .filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderStudentGrid();
+}
+
+// =====================================================
+// TRACKS
+// =====================================================
+function openAddTrackModal() {
+  _trackSelectedIds = new Set();
+  document.getElementById('track-name-input').value = '';
+  document.getElementById('track-grade-input').value = '';
+  document.getElementById('track-student-search').value = '';
+  renderTrackChips();
+  filterTrackStudents();
+  document.getElementById('add-track-modal').classList.add('open');
+}
+
+function closeAddTrackModal() {
+  document.getElementById('add-track-modal').classList.remove('open');
+  _trackSelectedIds = new Set();
+}
+
+function filterTrackStudents() {
+  const search = document.getElementById('track-student-search').value.toLowerCase();
+  const grade = document.getElementById('track-grade-input').value;
+  const list = document.getElementById('track-student-list');
+
+  const filtered = students.filter(s => {
+    const g = String(gradeFromGradYear(s.gradYear));
+    const nameMatch = !search || `${s.first} ${s.last}`.toLowerCase().includes(search);
+    const gradeMatch = !grade || g === grade;
+    return nameMatch && gradeMatch;
+  });
+
+  if (!filtered.length) {
+    list.innerHTML = '<div style="padding:12px;text-align:center;color:var(--slate);font-size:0.82rem">No students found.</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(s => {
+    const sel = _trackSelectedIds.has(s.id);
+    return `<div class="student-pick-item ${sel ? 'selected' : ''}" onclick="toggleTrackStudent(${s.id}, '${s.first} ${s.last}')">
+      <span>${s.last}, ${s.first} <span style="font-size:0.74rem;color:var(--slate)">· Gr ${gradeFromGradYear(s.gradYear)}</span></span>
+      <span style="font-size:1rem;color:var(--gold)">${sel ? '✓' : '+'}</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleTrackStudent(id, name) {
+  if (_trackSelectedIds.has(id)) _trackSelectedIds.delete(id);
+  else _trackSelectedIds.add(id);
+  renderTrackChips();
+  filterTrackStudents();
+}
+
+function renderTrackChips() {
+  const chips = document.getElementById('track-selected-chips');
+  const count = document.getElementById('track-selected-count');
+  count.textContent = _trackSelectedIds.size;
+  if (!_trackSelectedIds.size) { chips.innerHTML = '<span style="font-size:0.8rem;color:var(--slate);font-style:italic">No students selected yet.</span>'; return; }
+  chips.innerHTML = [..._trackSelectedIds].map(id => {
+    const s = students.find(x => x.id === id);
+    if (!s) return '';
+    return `<span class="track-chip">${s.first} ${s.last}<span class="chip-remove" onclick="toggleTrackStudent(${id})">✕</span></span>`;
+  }).join('');
+}
+
+function saveTrack() {
+  const name = document.getElementById('track-name-input').value.trim();
+  const dept = document.getElementById('track-dept-input').value;
+  const grade = document.getElementById('track-grade-input').value;
+  if (!name) { alert('Please enter a track name.'); return; }
+  if (!_trackSelectedIds.size) { alert('Please add at least one student.'); return; }
+  TRACKS.push({ id: _nextTrackId++, name, dept, grade, studentIds: [..._trackSelectedIds] });
+  closeAddTrackModal();
+  renderStudentGrid();
+}
+
+// =====================================================
+// STUDENT COURSE MODAL
+// =====================================================
+function toggleElectiveCard(input) {
+  if (input.type === 'radio') {
+    document.querySelectorAll(`input[name="${input.name}"]`).forEach(r => r.closest('.elective-card').classList.remove('selected'));
+  }
+  input.closest('.elective-card').classList.toggle('selected', input.checked);
+}
+
+function handle12thPick(cb) {
+  const all = [...document.querySelectorAll('input[name="g12-pick"]')];
+  const checked = all.filter(c => c.checked);
+  const msg = document.getElementById('g12-pick-msg');
+  const count = document.getElementById('g12-pick-count');
+  if (checked.length > 2) {
+    cb.checked = false;
+    cb.closest('.elective-card').classList.remove('selected');
+    msg.textContent = 'You can only select 2 courses.';
+    msg.style.display = 'block';
+  } else {
+    cb.closest('.elective-card').classList.toggle('selected', cb.checked);
+    msg.style.display = 'none';
+  }
+  const final = all.filter(c => c.checked);
+  count.textContent = `${final.length}/2 selected`;
+}
+
+function selectStudentChoice(btn) {
+  const group = btn.dataset.group;
+  document.querySelectorAll(`[data-group="${group}"]`).forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function switchStudentTab(tab) {
+  currentStudentTab = tab;
+  document.getElementById('sc-tab-choices').classList.toggle('active', tab === 'choices');
+  document.getElementById('sc-tab-enrolled').classList.toggle('active', tab === 'enrolled');
+  document.getElementById('sc-save-btn').style.display = tab === 'choices' ? 'inline-flex' : 'none';
+  const s = students[currentStudentId];
+  if (tab === 'choices') renderChoicesTab(s);
+  else renderEnrolledTab(s);
+}
+
+function openStudentCourseModal(idx) {
+  currentStudentId = idx;
+  currentStudentTab = 'choices';
+  const s = students[idx];
+  const grade = gradeFromGradYear(s.gradYear);
+
+  document.getElementById('sc-student-name').textContent = `${s.first} ${s.last}`;
+  document.getElementById('sc-student-grade').textContent = `Grade ${grade} · Class of ${s.gradYear}`;
+  document.getElementById('sc-tab-choices').classList.add('active');
+  document.getElementById('sc-tab-enrolled').classList.remove('active');
+  document.getElementById('sc-save-btn').style.display = 'inline-flex';
+  renderChoicesTab(s);
+  document.getElementById('student-course-modal').classList.add('open');
+}
+
+function renderEnrolledTab(s) {
+  const grade = gradeFromGradYear(s.gradYear);
+
+  // Always-enrolled required courses (no sections needed)
+  const required = [...REQUIRED.all, ...(REQUIRED[grade] || [])];
+  const lkCourses = [CHUMASH_BY_GRADE[grade], NAVI_BY_GRADE[grade], HALACHA_BY_GRADE[grade], ...(IVRIT_BY_GRADE[grade] ? [IVRIT_BY_GRADE[grade]] : [])];
+  let html = `<div class="sub-section">
+    <div class="sub-title">Required Courses</div>
+    <div class="required-classes">
+      ${required.map(r => `<span class="badge badge-required">✓ ${r}</span>`).join('')}
+      ${lkCourses.map(c => `<span class="badge badge-tracked">✓ ${c}</span>`).join('')}
+    </div>
+  </div>`;
+
+  // Tracked courses — only shown when student is in a matching track
+  const enrolled = TRACKS.filter(t => t.studentIds.includes(s.id));
+  html += `<div class="sub-section">
+    <div class="sub-title">Assigned Class Sections (${enrolled.length})</div>`;
+  if (!enrolled.length) {
+    html += `<div style="font-size:0.83rem;color:var(--slate);font-style:italic;padding:6px 0">No sections assigned yet — Chumash, Navi, Halacha, Ivrit, Math, and elective sections will appear here once a track is created and this student is added to it.</div>`;
+  } else {
+    html += `<table class="data-table" style="margin-top:4px">
+      <thead><tr><th>Class</th><th>Department</th></tr></thead>
+      <tbody>${enrolled.map(t => `<tr>
+        <td><strong>${t.name}</strong></td>
+        <td>${t.dept}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+  }
+  html += '</div>';
+
+  const c = s.courses;
+  if (c) {
+    html += `<div class="sub-section"><div class="sub-title">Selected Courses</div><div class="required-classes">`;
+    // Grades 9–11 electives + math
+    if (c.math) html += `<span class="badge badge-tracked">📐 ${c.math}</span>`;
+    if (c.jewishElective) html += `<span class="badge badge-tracked">✡️ ${c.jewishElective}</span>`;
+    if (c.genElective) html += `<span class="badge badge-tracked">🎨 ${c.genElective}</span>`;
+    // AP choices (grades 10–11)
+    if (c.apChoices) {
+      Object.values(c.apChoices).forEach(val => {
+        if (val) html += `<span class="badge badge-tracked">📗 ${val}</span>`;
+      });
+    }
+    // Grade 12 picks
+    if (c.g12Picks && c.g12Picks.length) {
+      c.g12Picks.forEach(p => { html += `<span class="badge badge-tracked">⭐ ${p}</span>`; });
+    }
+    html += '</div></div>';
+  }
+
+  document.getElementById('sc-body').innerHTML = html;
+}
+
+function renderChoicesTab(s) {
+  const grade = gradeFromGradYear(s.gradYear);
+  const c = s.courses || {};
+
+  let html = `<div class="alert alert-info" style="margin-bottom:14px">Select optional courses below. Required courses are listed under the <strong>Enrolled Classes</strong> tab.</div>`;
+
+  if (grade === 12) {
+    const picks = c.g12Picks || [];
+    const allOpts = [
+      ...G12_MATH.map(m => ({ label: m, cat: 'math' })),
+      ...G12_SCIENCE.map(s => ({ label: s, cat: 'science' })),
+      ...G12_ELECTIVE.map(e => ({ label: e, cat: 'elective' }))
+    ];
+    html += `<div class="sub-section">
+      <div class="sub-title">Advanced Courses — Choose exactly 2 (at least 1 must be Math or Science)</div>
+      <div id="g12-pick-count" style="font-size:0.78rem;color:var(--slate);margin-bottom:10px">${picks.length}/2 selected</div>
+      <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--slate);margin-bottom:6px">Math</div>
+      <div class="elective-grid">${G12_MATH.map(m => `<label class="elective-card${picks.includes(m) ? ' selected' : ''}"><input type="checkbox" name="g12-pick" value="${m}" data-cat="math" onchange="handle12thPick(this)"${picks.includes(m) ? ' checked' : ''}> ${m}</label>`).join('')}</div>
+      <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--slate);margin:10px 0 6px">Science</div>
+      <div class="elective-grid">${G12_SCIENCE.map(m => `<label class="elective-card${picks.includes(m) ? ' selected' : ''}"><input type="checkbox" name="g12-pick" value="${m}" data-cat="science" onchange="handle12thPick(this)"${picks.includes(m) ? ' checked' : ''}> ${m}</label>`).join('')}</div>
+      <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--slate);margin:10px 0 6px">Elective</div>
+      <div class="elective-grid">${G12_ELECTIVE.map(m => `<label class="elective-card${picks.includes(m) ? ' selected' : ''}"><input type="checkbox" name="g12-pick" value="${m}" data-cat="elective" onchange="handle12thPick(this)"${picks.includes(m) ? ' checked' : ''}> ${m}</label>`).join('')}</div>
+      <div id="g12-pick-msg" style="font-size:0.78rem;color:var(--red);margin-top:8px;display:none"></div>
+    </div>`;
+    // Jewish elective for grade 12
+    if (JEWISH_ELECTIVES[12]) {
+      html += `<div class="sub-section">
+        <div class="sub-title">Judaic Elective (choose 1)</div>
+        <div class="elective-grid">${JEWISH_ELECTIVES[12].map(e => {
+          const sel = c.jewishElective === e;
+          return `<label class="elective-card${sel ? ' selected' : ''}"><input type="radio" name="sc-jewish" value="${e}" onchange="toggleElectiveCard(this)"${sel ? ' checked' : ''}> ${e}</label>`;
+        }).join('')}</div>
+      </div>`;
+    }
+  } else {
+    // Math track (grades 9–11)
+    const mathOpts = MATH_BY_GRADE[grade] || [];
+    if (mathOpts.length) {
+      html += `<div class="sub-section">
+        <div class="sub-title">Math Level (choose 1)</div>
+        <div class="track-grid">${mathOpts.map(m =>
+          `<button class="track-btn${c.math === m.val ? ' selected' : ''}" data-group="sc-math" data-val="${m.val}" onclick="selectStudentChoice(this)">${m.label}</button>`
+        ).join('')}</div>
+      </div>`;
+    }
+
+    // AP / Advanced Placement options (grades 10–11)
+    const apOpts = AP_OPTIONS[grade];
+    if (apOpts) {
+      const ap = c.apChoices || {};
+      html += `<div class="sub-section"><div class="sub-title">AP / Advanced Placement</div>`;
+      apOpts.forEach(opt => {
+        if (opt.choices) {
+          // Multi-option (e.g. AP Lit / Honors / Regular)
+          const allChoices = [...opt.choices, opt.regular];
+          html += `<div style="margin-bottom:12px">
+            <div style="font-size:0.78rem;font-weight:600;color:var(--navy);margin-bottom:6px">${opt.label}</div>
+            <div class="elective-grid">${allChoices.map(ch => {
+              const sel = (ap[opt.field] || opt.regular) === ch;
+              return `<label class="elective-card${sel ? ' selected' : ''}"><input type="radio" name="ap-${opt.field}" value="${ch}" onchange="toggleElectiveCard(this)"${sel ? ' checked' : ''}> ${ch}</label>`;
+            }).join('')}</div>
+          </div>`;
+        } else {
+          // Binary AP vs regular
+          const choices = [opt.ap, opt.regular].filter(Boolean);
+          html += `<div style="margin-bottom:12px">
+            <div style="font-size:0.78rem;font-weight:600;color:var(--navy);margin-bottom:6px">${opt.label}</div>
+            <div class="elective-grid">${choices.map(ch => {
+              const saved = ap[opt.field] || opt.regular;
+              const sel = saved === ch;
+              return `<label class="elective-card${sel ? ' selected' : ''}"><input type="radio" name="ap-${opt.field}" value="${ch}" onchange="toggleElectiveCard(this)"${sel ? ' checked' : ''}> ${ch}</label>`;
+            }).join('')}${!opt.regular ? `<label class="elective-card${!ap[opt.field] ? ' selected' : ''}"><input type="radio" name="ap-${opt.field}" value="" onchange="toggleElectiveCard(this)"${!ap[opt.field] ? ' checked' : ''}> Not taking</label>` : ''}</div>
+          </div>`;
+        }
+      });
+      html += `</div>`;
+    }
+
+    // Jewish elective (grades 11+)
+    if (JEWISH_ELECTIVES[grade]) {
+      html += `<div class="sub-section">
+        <div class="sub-title">Judaic Elective (choose 1)</div>
+        <div class="elective-grid">${JEWISH_ELECTIVES[grade].map(e => {
+          const sel = c.jewishElective === e;
+          return `<label class="elective-card${sel ? ' selected' : ''}"><input type="radio" name="sc-jewish" value="${e}" onchange="toggleElectiveCard(this)"${sel ? ' checked' : ''}> ${e}</label>`;
+        }).join('')}</div>
+      </div>`;
+    }
+    // General elective
+    if (ELECTIVES_BY_GRADE[grade]) {
+      html += `<div class="sub-section">
+        <div class="sub-title">General Elective (choose 1)</div>
+        <div class="elective-grid">${ELECTIVES_BY_GRADE[grade].map(e => {
+          const sel = c.genElective === e;
+          return `<label class="elective-card${sel ? ' selected' : ''}"><input type="radio" name="sc-gen" value="${e}" onchange="toggleElectiveCard(this)"${sel ? ' checked' : ''}> ${e}</label>`;
+        }).join('')}</div>
+      </div>`;
+    }
+  }
+
+  document.getElementById('sc-body').innerHTML = html;
+}
+
+function closeStudentCourseModal() {
+  document.getElementById('student-course-modal').classList.remove('open');
+  currentStudentId = null;
+}
+
+function saveStudentCourses() {
+  if (currentStudentId === null) return;
+  const s = students[currentStudentId];
+  const grade = gradeFromGradYear(s.gradYear);
+  const courses = {};
+
+  if (grade === 12) {
+    const picks = [...document.querySelectorAll('input[name="g12-pick"]:checked')];
+    if (picks.length !== 2) { alert('Please select exactly 2 courses.'); return; }
+    const hasMathOrSci = picks.some(p => p.dataset.cat === 'math' || p.dataset.cat === 'science');
+    if (!hasMathOrSci) { alert('At least one of your 2 courses must be Math or Science.'); return; }
+    courses.g12Picks = picks.map(p => p.value);
+    const jr = document.querySelector('input[name="sc-jewish"]:checked');
+    courses.jewishElective = jr ? jr.value : null;
+  } else {
+    const mb = document.querySelector('[data-group="sc-math"].selected');
+    courses.math = mb ? mb.dataset.val : null;
+    const jr = document.querySelector('input[name="sc-jewish"]:checked');
+    courses.jewishElective = jr ? jr.value : null;
+    const gr = document.querySelector('input[name="sc-gen"]:checked');
+    courses.genElective = gr ? gr.value : null;
+    // AP choices (grades 10–11)
+    const apOpts = AP_OPTIONS[grade];
+    if (apOpts) {
+      courses.apChoices = {};
+      apOpts.forEach(opt => {
+        const sel = document.querySelector(`input[name="ap-${opt.field}"]:checked`);
+        courses.apChoices[opt.field] = sel ? sel.value : (opt.regular || null);
+      });
+    }
+  }
+
+  students[currentStudentId].courses = courses;
+  closeStudentCourseModal();
+  renderStudentGrid();
+  syncScheduleStudents();
+}
+
+// Re-sync schedule slot student counts whenever student data changes
+function syncScheduleStudents() {
+  if (!scheduleSlots.length) return;
+  assignStudentsToSlots(scheduleSlots);
+  if (document.getElementById('section-schedule').style.display !== 'none') {
+    renderScheduleGrid();
+  }
+  scheduleSync();
+}
+
+// =====================================================
+// SCHEDULE BUILDER
+// =====================================================
+// Mon / Wed / Thu
+const PERIOD_TIMES = {
+  1:'8:30–9:15 AM', 2:'9:18–10:03 AM', 3:'10:06–10:51 AM',
+  'break':'Break AM',
+  4:'11:02–11:47 AM',
+  '5a':'11:50 AM–12:35 PM', '5b':'12:38–1:23 PM',
+  6:'1:26–2:11 PM', 7:'2:14–2:59 PM',
+  'mincha':'Mincha',
+  8:'3:12–3:57 PM', 9:'4:00–4:45 PM'
+};
+// Tuesday — 41-min periods; Power 36 after P3
+const PERIOD_TIMES_TUE = {
+  1:'8:30–9:11 AM', 2:'9:14–9:55 AM', 3:'9:58–10:39 AM',
+  'p36':'10:39–11:15 AM',
+  'break':'Break AM',
+  4:'11:30 AM–12:11 PM',
+  '5a':'12:14–12:55 PM', '5b':'12:58–1:39 PM',
+  6:'1:42–2:23 PM', 7:'2:26–3:07 PM',
+  'mincha':'Mincha',
+  8:'3:20–4:01 PM', 9:'4:04–4:45 PM'
+};
+// Friday — shorter day, no lunch split, ends after P6
+const PERIOD_TIMES_FRI = {
+  1:'8:30–9:12 AM', 2:'9:15–9:57 AM', 3:'10:00–10:42 AM',
+  'break':'Break AM',
+  4:'10:56–11:38 AM', 5:'11:41 AM–12:23 PM', 6:'12:26–1:10 PM'
+};
+const FRI_PERIODS = [1,2,3,'break',4,5,6];
+
+// Tuesday Power 36 — school-wide advisory/activity period
+const POWER36_SLOT = {period:'p36', grade:'all', course:'Power 36', section:'', room:'All Rooms', teacherKey:'', dept:'All', days:['tue']};
+
+// Master schedule template derived from the school's spreadsheet
+// days: which days this slot runs. teacherKey: last name to match against FACULTY
+const SCHEDULE_TEMPLATE = [
+  // ── PERIOD 1 ──
+  {period:1,grade:9, course:'Tefilah',       section:'',  room:'Auditorium', teacherKey:'',           dept:'LK',      days:['mon','tue','wed','thu','fri']},
+  {period:1,grade:10,course:'Chumash',        section:'H', room:'001',    teacherKey:'TEACHER47',     dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:1,grade:10,course:'Navi',           section:'2', room:'112',    teacherKey:'TEACHER26',   dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:1,grade:10,course:'Tefilah',        section:'',  room:'Auditorium', teacherKey:'',           dept:'LK',      days:['mon','tue','wed','thu','fri']},
+  {period:1,grade:11,course:'Chumash',        section:'H', room:'108',    teacherKey:'TEACHER23', dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:1,grade:11,course:'Ivrit',          section:'2', room:'107',    teacherKey:'TEACHER13',   dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:1,grade:11,course:'Navi',           section:'1', room:'100',    teacherKey:'TEACHER01',    dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:1,grade:11,course:'Tefilah',        section:'',  room:'Auditorium', teacherKey:'',           dept:'LK',      days:['mon','tue','wed','thu','fri']},
+  {period:1,grade:12,course:'AP Calculus AB', section:'',  room:'101',    teacherKey:'TEACHER25',      dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:1,grade:12,course:'Forensics',      section:'',  room:'109',    teacherKey:'TEACHER09',   dept:'Science', days:['mon','tue','wed','thu']},
+  {period:1,grade:12,course:'Tefilah',        section:'',  room:'Auditorium', teacherKey:'',           dept:'LK',      days:['mon','tue','wed','thu','fri']},
+  // ── PERIOD 2 ──
+  {period:2,grade:9, course:'Geometry',       section:'',  room:'204',    teacherKey:'UNLISTED01',  dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:2,grade:9, course:'Algebra 1',      section:'1', room:'101',    teacherKey:'TEACHER25',      dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:2,grade:9, course:'English',        section:'L', room:'103',    teacherKey:'TEACHER45',     dept:'English', days:['mon','tue','wed','thu']},
+  {period:2,grade:9, course:'Biology',        section:'2', room:'LAB',    teacherKey:'TEACHER37',  dept:'Science', days:['mon','tue','wed','thu']},
+  {period:2,grade:9, course:'Biology',        section:'3', room:'205',    teacherKey:'TEACHER28',   dept:'Science', days:['mon','tue','wed','thu']},
+  {period:2,grade:9, course:'Biology',        section:'4', room:'107',    teacherKey:'TEACHER09',   dept:'Science', days:['mon','tue','wed','thu']},
+  {period:2,grade:10,course:'Ivrit',          section:'1', room:'105',    teacherKey:'TEACHER07',   dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:2,grade:10,course:'Navi',           section:'3', room:'112',    teacherKey:'TEACHER26',   dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:2,grade:10,course:'Navi',           section:'4', room:'005',    teacherKey:'TEACHER29',    dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:2,grade:11,course:'Navi',           section:'M', room:'100',    teacherKey:'TEACHER01',    dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:2,grade:11,course:'Chumash',        section:'N', room:'108',    teacherKey:'TEACHER41', dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:2,grade:12,course:'Math IV',        section:'',  room:'113',    teacherKey:'TEACHER43',     dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:2,grade:12,course:'Mixed Media',    section:'',  room:'ART',    teacherKey:'TEACHER61',       dept:'Elective',days:['mon','tue','wed','thu']},
+  {period:2,grade:12,course:'AP Psychology',  section:'',  room:'106',    teacherKey:'TEACHER05',        dept:'Elective',days:['mon','tue','wed','thu']},
+  {period:2,grade:12,course:'AP Physics',     section:'',  room:'201',    teacherKey:'TEACHER31',      dept:'Science', days:['mon','tue','wed','thu']},
+  // ── PERIOD 3 ──
+  {period:3,grade:9, course:'English',        section:'J', room:'103',    teacherKey:'TEACHER45',     dept:'English', days:['mon','tue','wed','thu']},
+  {period:3,grade:9, course:'English',        section:'K', room:'104',    teacherKey:'TEACHER21',     dept:'English', days:['mon','tue','wed','thu']},
+  {period:3,grade:9, course:'Studio Art',     section:'',  room:'ART',    teacherKey:'TEACHER40',     dept:'Elective',days:['mon','tue','wed','thu']},
+  {period:3,grade:10,course:'Chemistry',      section:'1', room:'205',    teacherKey:'TEACHER37',  dept:'Science', days:['mon','tue','wed','thu']},
+  {period:3,grade:10,course:'Chemistry',      section:'2', room:'107',    teacherKey:'TEACHER28',   dept:'Science', days:['mon','tue','wed','thu']},
+  {period:3,grade:10,course:'English',        section:'J', room:'200',    teacherKey:'TEACHER27',     dept:'English', days:['mon','tue','wed','thu']},
+  {period:3,grade:11,course:'Halacha',        section:'H', room:'106',    teacherKey:'TEACHER36',       dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:3,grade:11,course:'Halacha',        section:'1', room:'101',    teacherKey:'TEACHER34',   dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:3,grade:11,course:'English',        section:'K', room:'004',    teacherKey:'TEACHER32',    dept:'English', days:['mon','tue','wed','thu']},
+  {period:3,grade:12,course:'AP Chemistry',   section:'',  room:'LAB',    teacherKey:'TEACHER16',      dept:'Science', days:['mon','tue','wed','thu']},
+  {period:3,grade:12,course:'English IV',     section:'J', room:'002',    teacherKey:'',           dept:'English', days:['mon','tue','wed','thu']},
+  {period:3,grade:12,course:'English IV',     section:'K', room:'110',    teacherKey:'TEACHER03',  dept:'English', days:['mon','tue','wed','thu']},
+  // ── PERIOD 4 ──
+  {period:4,grade:9, course:'Global Studies', section:'J', room:'200',    teacherKey:'TEACHER15',      dept:'History', days:['mon','tue','wed','thu']},
+  {period:4,grade:9, course:'Global Studies', section:'K', room:'004',    teacherKey:'TEACHER33',  dept:'History', days:['mon','tue','wed','thu']},
+  {period:4,grade:9, course:'Gym',            section:'',  room:'GYM',    teacherKey:'TEACHER17',  dept:'PE',      days:['mon','tue','wed','thu']},
+  {period:4,grade:10,course:'Algebra 2',      section:'2', room:'113',    teacherKey:'TEACHER43',     dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:4,grade:10,course:'Algebra 2',      section:'3', room:'204',    teacherKey:'UNLISTED01',  dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:4,grade:10,course:'Gym',            section:'',  room:'GYM',    teacherKey:'TEACHER44',  dept:'PE',      days:['mon','tue','wed','thu']},
+  {period:4,grade:11,course:'Pre-Calculus',   section:'',  room:'101',    teacherKey:'TEACHER25',      dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:4,grade:11,course:'Algebra 2',      section:'3', room:'002',    teacherKey:'',           dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:4,grade:11,course:'US History',     section:'J', room:'005',    teacherKey:'TEACHER06',       dept:'History', days:['mon','tue','wed','thu']},
+  {period:4,grade:12,course:'AP Calculus BC', section:'',  room:'108',    teacherKey:'TEACHER42',      dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:4,grade:12,course:'AP US History',  section:'',  room:'110',    teacherKey:'',           dept:'History', days:['mon','tue','wed','thu']},
+  {period:4,grade:12,course:'AP Government',  section:'',  room:'109',    teacherKey:'TEACHER22',      dept:'History', days:['mon','tue','wed','thu']},
+  // ── PERIOD 5 (Lunch – no academic slots) ──
+  // ── PERIOD 6 ──
+  {period:6,grade:9, course:'Navi',           section:'H', room:'109',    teacherKey:'TEACHER41', dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:6,grade:9, course:'Navi',           section:'1', room:'001',    teacherKey:'TEACHER14', dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:6,grade:9, course:'Navi',           section:'2', room:'100',    teacherKey:'TEACHER38',       dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:6,grade:9, course:'Navi',           section:'3', room:'205',    teacherKey:'TEACHER40',     dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:6,grade:9, course:'Chumash',        section:'4', room:'200',    teacherKey:'TEACHER18',      dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:6,grade:10,course:'Beit Midrash',   section:'H', room:'BM',     teacherKey:'TEACHER29',    dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:6,grade:10,course:'Creative Arts',  section:'1', room:'103',    teacherKey:'TEACHER49',     dept:'Elective',days:['mon','tue','wed','thu']},
+  {period:6,grade:10,course:'Chumash',        section:'2', room:'112',    teacherKey:'TEACHER30',    dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:6,grade:10,course:'Ivrit',          section:'3', room:'107',    teacherKey:'TEACHER13',   dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:6,grade:10,course:'Chumash',        section:'4', room:'102',    teacherKey:'TEACHER48',dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:6,grade:11,course:'Pre-Calculus',   section:'',  room:'101',    teacherKey:'TEACHER25',      dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:6,grade:11,course:'Algebra 2',      section:'1', room:'005',    teacherKey:'TEACHER47',     dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:6,grade:11,course:'Algebra 2',      section:'2', room:'113',    teacherKey:'TEACHER43',     dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:6,grade:11,course:'Algebra 2',      section:'3', room:'204',    teacherKey:'UNLISTED01',  dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:6,grade:11,course:'Algebra 2',      section:'4', room:'108',    teacherKey:'TEACHER42',      dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:6,grade:11,course:'English',        section:'J', room:'004',    teacherKey:'TEACHER27',     dept:'English', days:['mon','tue','wed','thu']},
+  {period:6,grade:12,course:'Jewish History', section:'J', room:'106',    teacherKey:'TEACHER05',        dept:'History', days:['mon','tue','wed','thu']},
+  {period:6,grade:12,course:'Jewish History', section:'K', room:'105',    teacherKey:'TEACHER07',   dept:'History', days:['mon','tue','wed','thu']},
+  {period:6,grade:12,course:'Jewish History', section:'L', room:'104',    teacherKey:'TEACHER10',    dept:'History', days:['mon','tue','wed','thu']},
+  {period:6,grade:12,course:'Jewish History', section:'M', room:'002',    teacherKey:'TEACHER06',       dept:'History', days:['mon','tue','wed','thu']},
+  // ── PERIOD 7 ──
+  {period:7,grade:9, course:'Halacha',        section:'J', room:'113',    teacherKey:'TEACHER10',    dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:7,grade:9, course:'Halacha',        section:'K', room:'101',    teacherKey:'TEACHER36',       dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:7,grade:9, course:'Global Studies', section:'L', room:'110',    teacherKey:'TEACHER33',  dept:'History', days:['mon','tue','wed','thu']},
+  {period:7,grade:9, course:'Global Studies', section:'M', room:'002',    teacherKey:'TEACHER15',      dept:'History', days:['mon','tue','wed','thu']},
+  {period:7,grade:10,course:'Algebra 2',      section:'1', room:'108',    teacherKey:'TEACHER42',      dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:7,grade:10,course:'Geometry',       section:'3', room:'204',    teacherKey:'UNLISTED01',  dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:7,grade:10,course:'Chemistry',      section:'4', room:'205',    teacherKey:'TEACHER28',   dept:'Science', days:['mon','tue','wed','thu']},
+  {period:7,grade:10,course:'Chemistry',      section:'L', room:'LAB',    teacherKey:'TEACHER16',      dept:'Science', days:['mon','tue','wed','thu']},
+  {period:7,grade:10,course:'English',        section:'K', room:'104',    teacherKey:'TEACHER27',     dept:'English', days:['mon','tue','wed','thu']},
+  {period:7,grade:11,course:'Jewish History', section:'H', room:'003',    teacherKey:'TEACHER06',       dept:'History', days:['mon','tue','wed','thu']},
+  {period:7,grade:11,course:'Jewish History', section:'1', room:'105',    teacherKey:'TEACHER07',   dept:'History', days:['mon','tue','wed','thu']},
+  {period:7,grade:11,course:'Navi',           section:'2', room:'106',    teacherKey:'TEACHER01',    dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:7,grade:11,course:'Chumash',        section:'M', room:'112',    teacherKey:'TEACHER23', dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:7,grade:11,course:'Ivrit',          section:'N', room:'107',    teacherKey:'TEACHER13',   dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:7,grade:12,course:'AP Government',  section:'2', room:'109',    teacherKey:'TEACHER22',      dept:'History', days:['mon','tue','wed','thu']},
+  {period:7,grade:12,course:'US Government',  section:'M', room:'100',    teacherKey:'',           dept:'History', days:['mon','tue','wed','thu']},
+  {period:7,grade:12,course:'English IV',     section:'J', room:'200',    teacherKey:'',           dept:'English', days:['mon','tue','wed','thu']},
+  {period:7,grade:12,course:'English IV',     section:'K', room:'103',    teacherKey:'TEACHER32',    dept:'English', days:['mon','tue','wed','thu']},
+  {period:7,grade:12,course:'English IV',     section:'L', room:'004',    teacherKey:'TEACHER21',     dept:'English', days:['mon','tue','wed','thu']},
+  // ── PERIOD 8 ──
+  {period:8,grade:9, course:'Spanish',        section:'',  room:'110',    teacherKey:'TEACHER19',     dept:'Elective',days:['mon','tue','wed','thu']},
+  {period:8,grade:9, course:'Gym',            section:'',  room:'GYM',    teacherKey:'TEACHER17',  dept:'PE',      days:['mon','tue','wed','thu']},
+  {period:8,grade:10,course:'AP World Hist',  section:'',  room:'001',    teacherKey:'TEACHER22',      dept:'History', days:['mon','tue','wed','thu']},
+  {period:8,grade:10,course:'Global History', section:'',  room:'109',    teacherKey:'TEACHER15',      dept:'History', days:['mon','tue','wed','thu']},
+  {period:8,grade:11,course:'AP CS Principles',section:'', room:'OSH',    teacherKey:'TEACHER31',      dept:'Science', days:['mon','tue','wed','thu']},
+  {period:8,grade:11,course:'AP Literature',  section:'',  room:'104',    teacherKey:'TEACHER32',    dept:'English', days:['mon','tue','wed','thu']},
+  {period:8,grade:11,course:'Honors English', section:'',  room:'103',    teacherKey:'TEACHER27',     dept:'English', days:['mon','tue','wed','thu']},
+  {period:8,grade:11,course:'English 11',     section:'',  room:'004',    teacherKey:'TEACHER21',     dept:'English', days:['mon','tue','wed','thu']},
+  {period:8,grade:12,course:'AP Biology',     section:'',  room:'LAB',    teacherKey:'TEACHER28',   dept:'Science', days:['mon','tue','wed','thu']},
+  {period:8,grade:12,course:'AP Calculus AB', section:'2', room:'101',    teacherKey:'TEACHER25',      dept:'Math',    days:['mon','tue','wed','thu']},
+  {period:8,grade:12,course:'Anatomy & Phys.',section:'',  room:'205',    teacherKey:'TEACHER37',  dept:'Science', days:['mon','tue','wed','thu']},
+  // ── PERIOD 9 ──
+  {period:9,grade:9, course:'Ivrit',          section:'H', room:'107',    teacherKey:'TEACHER13',   dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:9,grade:9, course:'Chumash',        section:'1', room:'112',    teacherKey:'TEACHER30',    dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:9,grade:9, course:'Ivrit',          section:'2', room:'100',    teacherKey:'TEACHER49',     dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:9,grade:9, course:'Chumash',        section:'3', room:'102',    teacherKey:'TEACHER48',dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:9,grade:9, course:'Chumash',        section:'4', room:'200',    teacherKey:'TEACHER18',      dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:9,grade:10,course:'Halacha',        section:'J', room:'101',    teacherKey:'TEACHER10',    dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:9,grade:10,course:'Halacha',        section:'K', room:'106',    teacherKey:'TEACHER36',       dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:9,grade:10,course:'Halacha',        section:'L', room:'113',    teacherKey:'TEACHER34',   dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:9,grade:10,course:'Global Studies', section:'M', room:'109',    teacherKey:'TEACHER22',      dept:'History', days:['mon','tue','wed','thu']},
+  {period:9,grade:10,course:'Global Studies', section:'N', room:'001',    teacherKey:'TEACHER15',      dept:'History', days:['mon','tue','wed','thu']},
+  {period:9,grade:11,course:'Ivrit',          section:'H', room:'105',    teacherKey:'TEACHER07',   dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:9,grade:11,course:'Chumash',        section:'1', room:'204',    teacherKey:'TEACHER14', dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:9,grade:11,course:'Chumash',        section:'2', room:'108',    teacherKey:'TEACHER23', dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:9,grade:11,course:'Gym',            section:'',  room:'GYM',    teacherKey:'TEACHER17',  dept:'PE',      days:['mon','tue','wed','thu']},
+  {period:9,grade:11,course:'Navi',           section:'N', room:'205',    teacherKey:'TEACHER40',     dept:'LK',      days:['mon','tue','wed','thu']},
+  {period:9,grade:12,course:'AP Psychology',  section:'2', room:'003',    teacherKey:'TEACHER08',      dept:'Elective',days:['mon','tue','wed','thu']},
+  {period:9,grade:12,course:'Marine Biology', section:'',  room:'004',    teacherKey:'TEACHER37',  dept:'Science', days:['mon','tue','wed','thu']},
+  {period:9,grade:12,course:'College Finance',section:'',  room:'005',    teacherKey:'TEACHER43',     dept:'Math',    days:['mon','tue','wed','thu']},
+];
+
+let scheduleSlots = [];      // working schedule (generated + edited)
+let _history = [];           // undo stack of JSON snapshots
+let _historyIdx = -1;        // current position in history
+let currentSchedDay = 'mon';
+let currentSchedGrade = 'all';
+let editingSlotId = null;
+let _nextSlotId = 0;
+
+// Match teacherKey (last name) to a FACULTY index
+function matchTeacher(key) {
+  if (!key) return -1;
+  const k = key.toUpperCase();
+  return FACULTY.findIndex(f => f.last.toUpperCase() === k || f.last.toUpperCase().startsWith(k));
+}
+
+// Assign students to sections based on their track choices
+function assignStudentsToSlots(slots) {
+  // Clear existing student assignments
+  slots.forEach(s => s.studentIds = []);
+
+  students.forEach(st => {
+    const grade = gradeFromGradYear(st.gradYear);
+    const courses = st.courses || {};
+    const trackObj = (typeof st.tracks === 'object' && st.tracks) ? st.tracks : {};
+
+    slots.forEach(slot => {
+      if (slot.grade !== grade) return;
+      const c = slot.course.toLowerCase();
+      const sec = slot.section;
+
+      // Tefilah — every student in their grade
+      if (c === 'tefilah') { slot.studentIds.push(st.id); return; }
+      // Gym — every student in their grade
+      if (c === 'gym') { slot.studentIds.push(st.id); return; }
+
+      // LK tracked courses — match by track section letter
+      if (c === 'chumash' && trackObj.chumash && String(trackObj.chumash) === String(sec)) { slot.studentIds.push(st.id); return; }
+      if (c === 'navi'    && trackObj.navi    && String(trackObj.navi)    === String(sec)) { slot.studentIds.push(st.id); return; }
+      if (c === 'ivrit'   && trackObj.ivrit   && String(trackObj.ivrit)   === String(sec)) { slot.studentIds.push(st.id); return; }
+      if (c === 'halacha' && trackObj.halacha && String(trackObj.halacha) === String(sec)) { slot.studentIds.push(st.id); return; }
+
+      // Math tracks (9-11)
+      if ((c.includes('algebra') || c.includes('geometry') || c.includes('pre-calc') || c.includes('calculus')) && grade <= 11) {
+        if (courses.math && String(courses.math).toUpperCase() === String(sec).toUpperCase()) { slot.studentIds.push(st.id); return; }
+      }
+
+      // AP courses (10-11)
+      if (courses.apChoices) {
+        const ap = courses.apChoices;
+        if (slot.course === ap.worldHistory) { slot.studentIds.push(st.id); return; }
+        if (slot.course === ap.usHistory)    { slot.studentIds.push(st.id); return; }
+        if (slot.course === ap.english)      { slot.studentIds.push(st.id); return; }
+        if (slot.course === 'AP CS Principles' && ap.cs === 'AP Computer Science Principles') { slot.studentIds.push(st.id); return; }
+      }
+
+      // 12th grade elective picks
+      if (grade === 12 && courses.g12Picks && courses.g12Picks.includes(slot.course)) {
+        slot.studentIds.push(st.id); return;
+      }
+      if (grade === 12 && courses.jewishElective === slot.course) {
+        slot.studentIds.push(st.id); return;
+      }
+    });
+  });
+}
+
+function detectConflicts(slots) {
+  const messages = [];
+  const conflictIds = new Set();
+  // Teacher double-booked in same period+day
+  slots.forEach(a => {
+    if (a.facultyId < 0) return;
+    a.days.forEach(day => {
+      slots.forEach(b => {
+        if (b.id <= a.id) return;
+        if (b.facultyId !== a.facultyId) return;
+        if (b.period !== a.period) return;
+        if (!b.days.includes(day)) return;
+        messages.push(`${FACULTY[a.facultyId].last} double-booked P${a.period} ${day} (${a.course} & ${b.course})`);
+        conflictIds.add(a.id); conflictIds.add(b.id);
+      });
+    });
+  });
+  // Room double-booked
+  const sharedRooms = new Set(['Auditorium','GYM','BM','']);
+  slots.forEach(a => {
+    if (sharedRooms.has(a.room)) return;
+    a.days.forEach(day => {
+      slots.forEach(b => {
+        if (b.id <= a.id) return;
+        if (b.room !== a.room) return;
+        if (b.period !== a.period) return;
+        if (!b.days.includes(day)) return;
+        messages.push(`Room ${a.room} double-booked P${a.period} ${day} (${a.course} & ${b.course})`);
+        conflictIds.add(a.id); conflictIds.add(b.id);
+      });
+    });
+  });
+  // Students with no lunch (in class during both 5a AND 5b on the same day)
+  const lunchDays = ['mon','tue','wed','thu'];
+  const studentNoLunch = new Map(); // studentId → Set of days with no lunch
+  lunchDays.forEach(day => {
+    const in5a = new Set(slots.filter(s => s.period === '5a' && s.days.includes(day)).flatMap(s => s.studentIds));
+    const in5b = new Set(slots.filter(s => s.period === '5b' && s.days.includes(day)).flatMap(s => s.studentIds));
+    in5a.forEach(sid => {
+      if (in5b.has(sid)) {
+        if (!studentNoLunch.has(sid)) studentNoLunch.set(sid, new Set());
+        studentNoLunch.get(sid).add(day);
+      }
+    });
+  });
+  studentNoLunch.forEach((days, sid) => {
+    const st = students.find(x => x.id === sid);
+    const name = st ? `${st.first} ${st.last}` : `Student #${sid}`;
+    messages.push(`⚠ No lunch: ${name} has class both 5A & 5B on ${[...days].join('/')}`);
+  });
+  return { messages: [...new Set(messages)], ids: conflictIds };
+}
+
+// Map dept codes to FACULTY dept values for auto-assign
+function deptMatches(facultyDept, slotDept) {
+  const map = {
+    'LK':      ['Limudei Kodesh','Ivrit'],
+    'Math':    ['Mathematics'],
+    'English': ['English'],
+    'Science': ['Science'],
+    'History': ['History'],
+    'PE':      ['Physical Education'],
+    'Elective':['Elective','English','Science','History'],
+    'All':     [],
+  };
+  const targets = map[slotDept] || [];
+  return targets.includes(facultyDept);
+}
+
+function autoAssignTeachers(slots) {
+  slots.forEach(slot => {
+    if (slot.facultyId >= 0) return; // already assigned
+    if (slot.dept === 'All') return; // Power 36 / shared
+    const candidate = FACULTY.find((f, fi) => {
+      if (!f.teaching && !f.wasNonTeaching) return false;
+      if (!deptMatches(f.dept, slot.dept)) return false;
+      // Not already teaching this period on an overlapping day
+      const conflict = slots.some(s =>
+        s.id !== slot.id &&
+        s.facultyId === fi &&
+        s.period === slot.period &&
+        s.days.some(d => slot.days.includes(d))
+      );
+      if (conflict) return false;
+      // Respect availability if set
+      if (f.availability) {
+        return slot.days.some(d => {
+          const avail = d === 'fri' ? (f.availability.fri || []) : (f.availability[d] || []);
+          return avail.includes(String(slot.period));
+        });
+      }
+      return true;
+    });
+    if (candidate) slot.facultyId = candidate.id;
+  });
+}
+
+function pushHistory() {
+  // Truncate any redo future
+  _history = _history.slice(0, _historyIdx + 1);
+  _history.push(JSON.stringify(scheduleSlots));
+  if (_history.length > 50) _history.shift();
+  _historyIdx = _history.length - 1;
+  updateUndoRedoBtns();
+}
+
+function updateUndoRedoBtns() {
+  const u = document.getElementById('undo-btn');
+  const r = document.getElementById('redo-btn');
+  if (u) u.disabled = _historyIdx <= 0;
+  if (r) r.disabled = _historyIdx >= _history.length - 1;
+}
+
+function undoSchedule() {
+  if (_historyIdx <= 0) return;
+  _historyIdx--;
+  scheduleSlots = JSON.parse(_history[_historyIdx]);
+  updateUndoRedoBtns();
+  renderScheduleGrid();
+  scheduleSync();
+}
+
+function redoSchedule() {
+  if (_historyIdx >= _history.length - 1) return;
+  _historyIdx++;
+  scheduleSlots = JSON.parse(_history[_historyIdx]);
+  updateUndoRedoBtns();
+  renderScheduleGrid();
+  scheduleSync();
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoSchedule(); }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redoSchedule(); }
+});
+
+function generateSchedule() {
+  // Build slots from template
+  scheduleSlots = SCHEDULE_TEMPLATE.map((t, i) => ({
+    ...t,
+    id: i,
+    facultyId: matchTeacher(t.teacherKey),
+    studentIds: [],
+  }));
+  // Add Power 36 Tuesday slot
+  scheduleSlots.push({ ...POWER36_SLOT, id: scheduleSlots.length, facultyId: -1, studentIds: [] });
+  _nextSlotId = scheduleSlots.length;
+
+  // Auto-assign teachers to unassigned slots (guaranteed no conflicts)
+  autoAssignTeachers(scheduleSlots);
+  assignStudentsToSlots(scheduleSlots);
+  const { messages: conflictMsgs } = detectConflicts(scheduleSlots);
+  const badge = document.getElementById('sched-conflict-badge');
+  const ok = document.getElementById('sched-ok-badge');
+  if (conflictMsgs.length) {
+    badge.textContent = `⚠ ${conflictMsgs.length} conflict${conflictMsgs.length>1?'s':''}`;
+    badge.title = conflictMsgs.join('\n');
+    badge.style.display = '';
+    ok.style.display = 'none';
+  } else {
+    ok.textContent = '✓ No conflicts';
+    ok.style.display = '';
+    badge.style.display = 'none';
+  }
+  document.getElementById('sched-empty').style.display = 'none';
+  document.getElementById('sched-grid').style.display = '';
+  renderScheduleGrid();
+  pushHistory();
+  scheduleSync();
+}
+
+function setSchedDay(day, el) {
+  currentSchedDay = day;
+  document.querySelectorAll('#section-schedule .filter-tabs:first-of-type .filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderScheduleGrid();
+}
+
+function setSchedGrade(grade, el) {
+  currentSchedGrade = grade === 'all' ? 'all' : Number(grade);
+  document.querySelectorAll('#section-schedule .filter-tabs:last-of-type .filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderScheduleGrid();
+}
+
+function renderScheduleGrid() {
+  if (!scheduleSlots.length) return;
+  const { messages: conflictMsgs, ids: conflictSlots } = detectConflicts(scheduleSlots);
+
+  const periods = currentSchedDay === 'tue'
+    ? [1,2,3,'p36','break',4,'5a','5b',6,7,'mincha',8,9]
+    : currentSchedDay === 'fri'
+    ? FRI_PERIODS
+    : [1,2,3,'break',4,'5a','5b',6,7,'mincha',8,9];
+
+  const visible = scheduleSlots.filter(s =>
+    s.days.includes(currentSchedDay) &&
+    (currentSchedGrade === 'all' || s.grade === currentSchedGrade || s.grade === 'all')
+  );
+
+  const times = currentSchedDay === 'tue' ? PERIOD_TIMES_TUE
+              : currentSchedDay === 'fri' ? PERIOD_TIMES_FRI
+              : PERIOD_TIMES;
+
+  let html = '';
+  periods.forEach(p => {
+    if (p === 'p36') {
+      html += `<div class="sched-period-block">
+        <div style="background:linear-gradient(135deg,var(--navy),var(--gold));color:#fff;padding:14px 18px;border-radius:8px;margin-bottom:4px;display:flex;align-items:center;gap:12px">
+          <span style="font-size:1.4rem">⚡</span>
+          <div>
+            <div style="font-family:'DM Serif Display',serif;font-size:1rem">Power 36 — Universal Advisory Period</div>
+            <div style="font-size:0.75rem;opacity:0.85;margin-top:2px">10:39–11:15 AM · All students · All grades</div>
+          </div>
+        </div>
+      </div>`;
+      return;
+    }
+    if (p === 'break') {
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;margin:2px 0">
+        <div style="flex:1;height:1px;background:var(--gold);opacity:0.4"></div>
+        <span style="font-size:0.75rem;color:var(--gold);font-weight:600;letter-spacing:.05em">☕ BREAK AM — ${times['break']}</span>
+        <div style="flex:1;height:1px;background:var(--gold);opacity:0.4"></div>
+      </div>`;
+      return;
+    }
+    if (p === 'mincha') {
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;margin:2px 0">
+        <div style="flex:1;height:1px;background:var(--maroon);opacity:0.4"></div>
+        <span style="font-size:0.75rem;color:var(--maroon);font-weight:600;letter-spacing:.05em">🕍 MINCHA — ${times['mincha']}</span>
+        <div style="flex:1;height:1px;background:var(--maroon);opacity:0.4"></div>
+      </div>`;
+      return;
+    }
+    const pSlots = visible.filter(s => s.period === p);
+    const isLunch = p === '5a' || p === '5b';
+    const label = p === '5a' ? 'Period 5A' : p === '5b' ? 'Period 5B' : `Period ${p}`;
+    if (!pSlots.length && !isLunch) return;
+    const dropAttrs = `ondragover="dragPeriodOver(event,'${p}')" ondragenter="dragPeriodEnter(event)" ondragleave="dragPeriodLeave(event)" ondrop="dropOnPeriod(event,'${p}')"`;
+    if (!pSlots.length && isLunch) {
+      html += `<div class="sched-period-block" ${dropAttrs}>
+        <div class="sched-period-label">${label} <span class="sched-period-time">${times[p] || ''}</span></div>
+        <div style="padding:10px 14px;color:var(--slate);font-size:0.82rem;font-style:italic">🍽 Lunch</div>
+      </div>`;
+      return;
+    }
+    html += `<div class="sched-period-block" ${dropAttrs}>
+      <div class="sched-period-label">${label} <span class="sched-period-time">${times[p] || ''}</span></div>
+      <div class="sched-slots-row">${pSlots.map(s => renderSlotCard(s, conflictSlots.has(s.id))).join('')}</div>
+    </div>`;
+  });
+  if (!html) html = '<div style="padding:24px;color:var(--slate);font-size:0.88rem">No classes scheduled for this day / grade combination.</div>';
+  document.getElementById('sched-grid').innerHTML = html;
+}
+
+function renderSlotCard(s, hasConflict) {
+  const teacher = s.facultyId >= 0 ? `${FACULTY[s.facultyId].title} ${FACULTY[s.facultyId].last}` : (s.teacherKey || '—');
+  const gradeBadge = `<span class="sched-slot-grade-badge grade-${s.grade}">Grade ${s.grade}</span>`;
+  const sectionLabel = s.section ? ` §${s.section}` : '';
+  const stuCount = s.studentIds.length;
+  return `<div class="sched-slot${hasConflict?' has-conflict':''}"
+    draggable="true"
+    ondragstart="dragSlotStart(event,${s.id})"
+    ondragend="dragSlotEnd(event)"
+    onclick="openSlotEditor(${s.id})"
+    title="Drag to move to another period">
+    ${gradeBadge}
+    <div class="sched-slot-course">${s.course}${sectionLabel}</div>
+    <div class="sched-slot-meta">🏫 ${s.room || '—'}<br>👤 ${teacher}</div>
+    <div class="sched-slot-students">${stuCount} student${stuCount!==1?'s':''}</div>
+  </div>`;
+}
+
+let _draggingSlotId = null;
+
+function dragSlotStart(e, id) {
+  _draggingSlotId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.style.opacity = '0.45';
+}
+
+function dragSlotEnd(e) {
+  e.currentTarget.style.opacity = '';
+  _draggingSlotId = null;
+  document.querySelectorAll('.sched-period-block.drag-over').forEach(el => el.classList.remove('drag-over'));
+}
+
+function dragPeriodOver(e, period) {
+  if (_draggingSlotId === null) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function dragPeriodEnter(e) {
+  e.currentTarget.classList.add('drag-over');
+}
+
+function dragPeriodLeave(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    e.currentTarget.classList.remove('drag-over');
+  }
+}
+
+function dropOnPeriod(e, period) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (_draggingSlotId === null) return;
+  const s = scheduleSlots.find(x => x.id === _draggingSlotId);
+  if (!s || s.period === period) return;
+  s.period = period;
+  renderScheduleGrid();
+  pushHistory();
+  scheduleSync();
+}
+
+function openSlotEditor(id) {
+  const s = scheduleSlots.find(x => x.id === id);
+  if (!s) return;
+  editingSlotId = id;
+  document.getElementById('slot-edit-title').textContent = `${s.course}${s.section?' §'+s.section:''}`;
+  const pLabel = s.period === '5a' ? 'Period 5A' : s.period === '5b' ? 'Period 5B' : `Period ${s.period}`;
+  document.getElementById('slot-edit-sub').textContent = `${pLabel} · Grade ${s.grade} · ${s.days.join('/')}`;
+  document.getElementById('slot-course-input').value = s.course;
+  document.getElementById('slot-section-input').value = s.section;
+  document.getElementById('slot-room-input').value = s.room;
+
+  // Populate teacher dropdown
+  const sel = document.getElementById('slot-teacher-select');
+  sel.innerHTML = '<option value="-1">— Unassigned —</option>' +
+    FACULTY.filter(f => f.teaching || f.wasNonTeaching)
+      .map(f => `<option value="${f.id}"${f.id===s.facultyId?' selected':''}>${f.title} ${f.first} ${f.last}</option>`)
+      .join('');
+
+  renderSlotStudentList(s);
+  document.getElementById('slot-student-results').style.display = 'none';
+  document.getElementById('slot-student-search').value = '';
+  document.getElementById('slot-edit-modal').classList.add('open');
+}
+
+function renderSlotStudentList(s) {
+  document.getElementById('slot-student-count').textContent = s.studentIds.length;
+  document.getElementById('slot-student-list').innerHTML = s.studentIds.map(sid => {
+    const st = students.find(x => x.id === sid);
+    if (!st) return '';
+    return `<span class="student-chip" title="Click to remove" onclick="removeStudentFromSlot(${sid})">✕ ${st.last}, ${st.first}</span>`;
+  }).join('');
+}
+
+function removeStudentFromSlot(sid) {
+  const s = scheduleSlots.find(x => x.id === editingSlotId);
+  if (!s) return;
+  s.studentIds = s.studentIds.filter(id => id !== sid);
+  renderSlotStudentList(s);
+  renderScheduleGrid();
+  pushHistory();
+}
+
+function filterSlotStudents() {
+  const q = document.getElementById('slot-student-search').value.trim().toLowerCase();
+  const res = document.getElementById('slot-student-results');
+  const s = scheduleSlots.find(x => x.id === editingSlotId);
+  if (!q) { res.style.display = 'none'; return; }
+  const matches = students.filter(st =>
+    !s.studentIds.includes(st.id) &&
+    (`${st.first} ${st.last}`.toLowerCase().includes(q) || `${st.last} ${st.first}`.toLowerCase().includes(q))
+  ).slice(0, 10);
+  res.style.display = matches.length ? '' : 'none';
+  res.innerHTML = matches.map(st =>
+    `<div style="padding:5px 8px;cursor:pointer;font-size:0.82rem;border-radius:5px" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background=''" onclick="addStudentToSlot(${st.id})">
+      ${st.last}, ${st.first} — Gr.${gradeFromGradYear(st.gradYear)}
+    </div>`
+  ).join('');
+}
+
+function addStudentToSlot(sid) {
+  const s = scheduleSlots.find(x => x.id === editingSlotId);
+  if (!s || s.studentIds.includes(sid)) return;
+
+  // Check if student is already in another slot at the same period+days
+  const clashes = scheduleSlots.filter(other =>
+    other.id !== s.id &&
+    other.studentIds.includes(sid) &&
+    other.period === s.period &&
+    other.days.some(d => s.days.includes(d))
+  );
+
+  if (clashes.length) {
+    const names = clashes.map(c => `"${c.course}${c.section ? ' §'+c.section : ''}" (Period ${c.period})`).join(', ');
+    const st = students.find(x => x.id === sid);
+    const stName = st ? `${st.first} ${st.last}` : 'This student';
+    showTransferConfirm(stName, names, () => {
+      clashes.forEach(c => { c.studentIds = c.studentIds.filter(id => id !== sid); });
+      s.studentIds.push(sid);
+      renderSlotStudentList(s);
+      renderScheduleGrid();
+      pushHistory();
+    });
+    document.getElementById('slot-student-search').value = '';
+    document.getElementById('slot-student-results').style.display = 'none';
+    return;
+  }
+
+  s.studentIds.push(sid);
+  renderSlotStudentList(s);
+  renderScheduleGrid();
+  pushHistory();
+  document.getElementById('slot-student-search').value = '';
+  document.getElementById('slot-student-results').style.display = 'none';
+}
+
+function showTransferConfirm(studentName, conflictNames, onConfirm) {
+  let modal = document.getElementById('transfer-confirm-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'transfer-confirm-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = `
+      <div style="background:#fff;border-radius:14px;padding:28px 32px;max-width:420px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.18)">
+        <div style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:10px">⚠ Schedule Conflict</div>
+        <div id="transfer-confirm-msg" style="font-size:0.9rem;color:var(--slate);line-height:1.5;margin-bottom:22px"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button onclick="document.getElementById('transfer-confirm-modal').remove()"
+            style="padding:8px 18px;border-radius:8px;border:1.5px solid var(--slate);background:#fff;cursor:pointer;font-size:0.88rem">No, keep as-is</button>
+          <button id="transfer-confirm-yes"
+            style="padding:8px 18px;border-radius:8px;border:none;background:var(--navy);color:#fff;cursor:pointer;font-size:0.88rem;font-weight:600">Yes, transfer</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+  document.getElementById('transfer-confirm-msg').innerHTML =
+    `<strong>${studentName}</strong> is already enrolled in ${conflictNames} at this time.<br><br>Transfer them to this class instead?`;
+  document.getElementById('transfer-confirm-yes').onclick = () => {
+    modal.remove();
+    onConfirm();
+  };
+}
+
+function saveSlotEdit() {
+  const s = scheduleSlots.find(x => x.id === editingSlotId);
+  if (!s) return;
+  s.course   = document.getElementById('slot-course-input').value.trim() || s.course;
+  s.section  = document.getElementById('slot-section-input').value.trim();
+  s.room     = document.getElementById('slot-room-input').value.trim();
+  const tid  = parseInt(document.getElementById('slot-teacher-select').value);
+  s.facultyId = isNaN(tid) ? -1 : tid;
+  closeSlotEditModal();
+  renderScheduleGrid();
+  pushHistory();
+  scheduleSync();
+}
+
+function deleteSlot() {
+  if (!confirm('Remove this class slot from the schedule?')) return;
+  scheduleSlots = scheduleSlots.filter(x => x.id !== editingSlotId);
+  closeSlotEditModal();
+  renderScheduleGrid();
+  pushHistory();
+  scheduleSync();
+}
+
+function closeSlotEditModal() {
+  document.getElementById('slot-edit-modal').classList.remove('open');
+  editingSlotId = null;
+}
+
+function exportSchedulePDF() {
+  if (!scheduleSlots.length) { alert('Generate a schedule first.'); return; }
+  window.print();
+}
+
+function buildScheduleTable() {} // replaced by above
+
+// =====================================================
+// AI CHATBOX
+// =====================================================
+// =====================================================
+// LOCAL STORAGE AUTO-SAVE + EXPORT/IMPORT
+// =====================================================
+let _saveTimeout = null;
+
+function scheduleSync() {
+  clearTimeout(_saveTimeout);
+  _saveTimeout = setTimeout(saveToLocal, 800);
+  document.getElementById('sync-dot').style.background = '#f0a500';
+  document.getElementById('sync-label').textContent = 'Saving…';
+}
+
+function saveToLocal() {
+  try {
+    localStorage.setItem('skedge_public_faculty',   JSON.stringify(FACULTY));
+    localStorage.setItem('skedge_public_students',  JSON.stringify(students));
+    localStorage.setItem('skedge_public_schedule',  JSON.stringify(scheduleSlots));
+    localStorage.setItem('skedge_public_tracks',    JSON.stringify(TRACKS));
+    document.getElementById('sync-dot').style.background = '#4caf50';
+    document.getElementById('sync-label').textContent = 'Saved';
+  } catch(e) {
+    document.getElementById('sync-dot').style.background = '#e53935';
+    document.getElementById('sync-label').textContent = 'Save failed';
+  }
+}
+
+function loadFromLocal() {
+  const fac = localStorage.getItem('skedge_public_faculty');
+  const stu = localStorage.getItem('skedge_public_students');
+  const sch = localStorage.getItem('skedge_public_schedule');
+  const trk = localStorage.getItem('skedge_public_tracks');
+  try {
+    if (fac) {
+      const parsed = JSON.parse(fac);
+      // If stored faculty count matches hardcoded, restore as-is.
+      // If hardcoded has grown (new staff added in source), keep hardcoded
+      // roster but restore saved availability/room/notes by matching last name.
+      if (parsed.length === FACULTY.length) {
+        FACULTY.length = 0;
+        parsed.forEach(f => FACULTY.push(f));
+      } else {
+        // Merge: hardcoded defines identity, stored provides availability data
+        FACULTY.forEach(f => {
+          const saved = parsed.find(s => s.last === f.last && s.first === f.first);
+          if (saved) {
+            f.availability = saved.availability;
+            f.room = saved.room || '';
+            f.notes = saved.notes || '';
+          }
+        });
+      }
+    }
+  } catch(e) {}
+  try {
+    if (stu) {
+      const parsed = JSON.parse(stu);
+      students.length = 0;
+      parsed.forEach(s => students.push(s));
+      trackedGrades = new Set(students.map(s => s.gradYear));
+    }
+  } catch(e) {}
+  try {
+    if (sch) {
+      const parsed = JSON.parse(sch);
+      if (parsed.length) {
+        scheduleSlots = parsed;
+        _nextSlotId = Math.max(...parsed.map(s => s.id)) + 1;
+      }
+    }
+  } catch(e) {}
+  try {
+    if (trk) {
+      const parsed = JSON.parse(trk);
+      TRACKS.length = 0;
+      parsed.forEach(t => TRACKS.push(t));
+    }
+  } catch(e) {}
+  // Always re-render after loading, regardless of errors
+  renderFacultyGrid();
+  renderStudentGrid();
+  updateStats();
+  document.getElementById('sync-dot').style.background = '#4caf50';
+  document.getElementById('sync-label').textContent = 'Auto-saved';
+}
+
+function exportData() {
+  const payload = {
+    faculty: FACULTY, students, schedule: scheduleSlots, tracks: TRACKS,
+    exportedAt: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ska-schedule-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.faculty  && data.faculty.length)  { FACULTY.length = 0;  data.faculty.forEach(f => FACULTY.push(f)); }
+      if (data.students && data.students.length)  { students.length = 0; data.students.forEach(s => students.push(s)); trackedGrades = new Set(students.map(s => s.gradYear)); }
+      if (data.schedule && data.schedule.length)  { scheduleSlots = data.schedule; _nextSlotId = Math.max(...scheduleSlots.map(s => s.id)) + 1; }
+      if (data.tracks   && data.tracks.length)    { TRACKS.length = 0;  data.tracks.forEach(t => TRACKS.push(t)); }
+      renderFacultyGrid();
+      renderStudentGrid();
+      updateStats();
+      saveToLocal();
+      alert('Data imported successfully!');
+    } catch(err) {
+      alert('Invalid file — please use a .json file exported from this app.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// Load saved data on startup
+window.addEventListener('load', loadFromLocal);
+// Safety net: save immediately before page closes
+window.addEventListener('beforeunload', saveToLocal);
+
+let chatOpen = false;
+let geminiKey = localStorage.getItem('skedge_public_gemini_key') || '';
+updateKeyStatus();
+
+function updateKeyStatus() {
+  const el = document.getElementById('chat-key-status');
+  if (!el) return;
+  if (geminiKey) { el.textContent = 'Gemini connected'; el.style.color = 'var(--green)'; }
+  else { el.textContent = 'No API key set'; el.style.color = 'var(--red)'; }
+}
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-panel').style.display = chatOpen ? 'flex' : 'none';
+  document.getElementById('chat-panel').style.flexDirection = 'column';
+  document.getElementById('chat-toggle-icon').textContent = chatOpen ? '▼' : '▲';
+}
+
+function showKeyInput() {
+  const row = document.getElementById('chat-key-row');
+  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+}
+
+function saveGeminiKey() {
+  const val = document.getElementById('gemini-key-input').value.trim();
+  if (!val) return;
+  geminiKey = val;
+  localStorage.setItem('skedge_public_gemini_key', val);
+  document.getElementById('chat-key-row').style.display = 'none';
+  document.getElementById('gemini-key-input').value = '';
+  updateKeyStatus();
+  appendChatBubble('ai', '✓ API key saved! Ask me about any scheduling conflict.');
+}
+
+function appendChatBubble(role, text) {
+  const box = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = `chat-bubble chat-${role}`;
+  div.textContent = text;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function appendTyping() {
+  const box = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'chat-typing';
+  div.id = 'chat-typing-indicator';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+function buildGeminiPrompt(userMsg) {
+  const lines = [];
+  lines.push(`You are SKA Schedule Assistant — an expert AI for Stella K. Abraham High School for Girls.`);
+  lines.push(`You have full live access to the current schedule data. Answer questions accurately using this data.\n`);
+
+  // Faculty
+  const teachers = FACULTY.filter(f => f.teaching);
+  lines.push(`=== FACULTY (${teachers.length} teachers) ===`);
+  teachers.forEach(f => lines.push(`  ${f.title} ${f.last} — ${f.role} (${f.dept})`));
+
+  // Students
+  lines.push(`\n=== STUDENTS (${students.length} total) ===`);
+  const byGrade = {};
+  students.forEach(s => {
+    const g = gradeFromGradYear(s.gradYear);
+    byGrade[g] = (byGrade[g] || []);
+    byGrade[g].push(`${s.last}, ${s.first}`);
+  });
+  Object.keys(byGrade).sort().forEach(g => {
+    lines.push(`  Grade ${g}: ${byGrade[g].length} students — ${byGrade[g].slice(0,5).join('; ')}${byGrade[g].length>5?' …':''}`);
+  });
+
+  // Schedule
+  if (scheduleSlots.length) {
+    const { messages: conflicts } = detectConflicts(scheduleSlots);
+    lines.push(`\n=== SCHEDULE (${scheduleSlots.length} slots) ===`);
+    lines.push(`Conflicts: ${conflicts.length ? conflicts.join(' | ') : 'NONE'}\n`);
+
+    const days = ['mon','tue','wed','thu','fri'];
+    days.forEach(day => {
+      const daySlots = scheduleSlots.filter(s => s.days.includes(day));
+      if (!daySlots.length) return;
+      lines.push(`-- ${day.toUpperCase()} --`);
+      const periods = [...new Set(daySlots.map(s=>s.period))].sort((a,b)=> a==='p36'?0.5:b==='p36'?-0.5:a-b);
+      periods.forEach(p => {
+        daySlots.filter(s=>s.period===p).forEach(s => {
+          const teacher = s.facultyId >= 0 ? `${FACULTY[s.facultyId].title} ${FACULTY[s.facultyId].last}` : 'Unassigned';
+          lines.push(`  P${p} | Gr${s.grade} | ${s.course}${s.section?' §'+s.section:''} | Room ${s.room} | ${teacher} | ${s.studentIds.length} students`);
+        });
+      });
+    });
+
+    // Teacher availability summary
+    lines.push(`\n=== TEACHER AVAILABILITY ===`);
+    FACULTY.filter(f=>f.teaching && f.availability).forEach(f => {
+      const av = f.availability;
+      const summary = ['mon','tue','wed','thu','fri'].map(d => {
+        const periods = d==='fri' ? (av.fri||[]) : (av[d]||[]);
+        return `${d}:P${periods.join(',')||'none'}`;
+      }).join(' ');
+      lines.push(`  ${f.last}: ${summary}`);
+    });
+  } else {
+    lines.push(`\n=== SCHEDULE: Not generated yet ===`);
+  }
+
+  lines.push(`\n=== USER QUESTION ===\n${userMsg}`);
+  lines.push(`\nAnswer helpfully and specifically using the data above. If suggesting changes, name the exact course, teacher, period and day.`);
+  return lines.join('\n');
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  appendChatBubble('user', msg);
+
+  if (!geminiKey) {
+    appendChatBubble('ai', 'Please set your Gemini API key first (click "Set key" above).');
+    return;
+  }
+
+  const typing = appendTyping();
+  const prompt = buildGeminiPrompt(msg);
+
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    const data = await res.json();
+    typing.remove();
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I couldn\'t get a response. Check your API key.';
+    appendChatBubble('ai', reply);
+  } catch(e) {
+    typing.remove();
+    appendChatBubble('ai', 'Network error — check your API key and try again.');
+  }
+}
+
+// =====================================================
+// OVERVIEW
+// =====================================================
+function updateOverview() {
+  updateStats();
+  const withAvail = FACULTY.filter(f => f.teaching && f.availability);
+  document.getElementById('overview-teachers').innerHTML = withAvail.length
+    ? withAvail.map(f => `<div style="padding:8px 0;border-bottom:1px solid var(--light-gray);font-size:0.84rem;display:flex;justify-content:space-between;align-items:center">
+        <span><strong>${f.title} ${f.last}</strong> — ${f.role}</span>
+        <span style="font-size:0.76rem;color:var(--slate)">${['mon','tue','wed','thu'].map(d=>`${d.charAt(0).toUpperCase()+d.slice(1)}: ${(f.availability[d]||[]).length}`).join(' · ')} · Fri: ${(f.availability.fri||[]).length}${f.room ? ' · ' + f.room : ''}</span>
+      </div>`).join('')
+    : '<div class="empty-state"><div class="empty-icon">👩‍🏫</div><p>No availability set yet. Go to Faculty Directory to add it.</p></div>';
+
+  document.getElementById('overview-students').innerHTML = students.length
+    ? students.map(s => `<div style="padding:8px 0;border-bottom:1px solid var(--light-gray);font-size:0.84rem">${s.last}, ${s.first} — Grade ${s.grade} · Chumash .${s.tracks.chumash||'?'} / Navi .${s.tracks.navi||'?'}</div>`).join('')
+    : '<div class="empty-state"><div class="empty-icon">🎓</div><p>No students added yet.</p></div>';
+}
+
+// =====================================================
+// INIT
+// =====================================================
+// =====================================================
+// Students are loaded from localStorage or imported via the Import button.
+
+renderFacultyGrid();
+renderStudentGrid();
+buildScheduleTable();
+updateStats();
+</script>
+</body>
+</html>
